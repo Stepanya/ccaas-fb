@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
-class FacebookPageAPIController extends Controller
+class FbPageController extends Controller
 {
     public function __construct() {
         $this->access_token = 'EAAD2eb8YYhQBAKRFVp268QlHeC0FnUazV81BPDHJqEIjhhEej5u1UwLn7UwgzqfNzRoN5ZCZCIKMaRvTHu2qwo4cuagH3w4SZBZAbnmDsYSb7gTnrR1ZCutZCZAHpfzk930I70camhKlEXBhjDVH2LSfOf9EjdHvqzFyKBPbxcZAWQZDZD';
