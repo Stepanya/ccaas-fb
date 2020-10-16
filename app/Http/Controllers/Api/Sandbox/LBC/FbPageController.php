@@ -90,12 +90,6 @@ class FbPageController extends Controller
 
         $fbPageService->receivePageEntryEvent($page_entries);
 
-        // Log::info(json_encode($request->all(), JSON_PRETTY_PRINT));
-
-        // return !is_null($page_entries) 
-        //     ? $fbPageService->receivePageEntryEvent($page_entries)
-        //     : response("An unexpected error has occured.", 500);
-        
         return response("Received content", 200);      
     }
 
