@@ -25,21 +25,21 @@ Route::prefix('sandbox')->group(function () {
     // LBC
     // Webhook
     // Route::get('webhook', [Sandbox\FacebookPageAPIController::class, 'receiveDataFromWebhook']);
-    Route::post('webhook', [Sandbox\LBC\FacebookPageAPIController::class, 'receiveDataFromWebhook']);
+    Route::post('webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromWebhook']);
     // Route::get('test-webhook', [Sandbox\FacebookPageAPIController::class, 'receiveDataFromTestWebhook']);
-    Route::post('test-webhook', [Sandbox\LBC\FacebookPageAPIController::class, 'receiveDataFromTestWebhook']);
+    Route::post('test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromTestWebhook']);
 
     // VANAD Test Endpoints
-    Route::post('authenticate', [Sandbox\LBC\FacebookPageAPIController::class, 'authAPITest']);
-    Route::post('process', [Sandbox\LBC\FacebookPageAPIController::class, 'processAPITest']);
+    Route::post('authenticate', [Sandbox\LBC\FbPageController::class, 'authAPITest']);
+    Route::post('process', [Sandbox\LBC\FbPageController::class, 'processAPITest']);
 
-    Route::get('/', [Sandbox\LBC\FacebookPageAPIController::class, 'showPagePosts']);
-    Route::get('/post/{post_id}', [Sandbox\LBC\FacebookPageAPIController::class, 'showPostAndMainComments']);
-    Route::get('/comments/{comment_id}', [Sandbox\LBC\FacebookPageAPIController::class, 'showCommentReplies']);
-    Route::post('comment', [Sandbox\LBC\FacebookPageAPIController::class, 'createCommentReply']);    
+    Route::get('/', [Sandbox\LBC\FbPageController::class, 'showPagePosts']);
+    Route::get('/post/{post_id}', [Sandbox\LBC\FbPageController::class, 'showPostAndMainComments']);
+    Route::get('/comments/{comment_id}', [Sandbox\LBC\FbPageController::class, 'showCommentReplies']);
+    Route::post('comment', [Sandbox\LBC\FbPageController::class, 'createCommentReply']);    
 });
 
 // V1
 Route::prefix('v1')->group(function () {
-    Route::post('comment', [V1\FacebookPageAPIController::class, 'createCommentReply']);    
+    Route::post('comment', [Sandbox\V1\FbPageController::class, 'createCommentReply']);    
 });
