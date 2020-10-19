@@ -24,22 +24,22 @@ use App\Http\Controllers\Api\Sandbox;
 Route::prefix('sandbox')->group(function () {
     // LBC
     // Webhook
-    // Route::get('webhook', [Sandbox\FacebookPageAPIController::class, 'receiveDataFromWebhook']);
-    Route::post('webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromWebhook']);
-    // Route::get('test-webhook', [Sandbox\FacebookPageAPIController::class, 'receiveDataFromTestWebhook']);
-    Route::post('test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromTestWebhook']);
+    // Route::get('webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
+    Route::post('webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
+    // Route::get('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
+    Route::post('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
 
     // VANAD Test Endpoints
-    Route::post('authenticate', [Sandbox\LBC\FbPageController::class, 'authAPITest']);
-    Route::post('process', [Sandbox\LBC\FbPageController::class, 'processAPITest']);
+    Route::post('authenticate', [Sandbox\FbPageController::class, 'authAPITest']);
+    Route::post('process', [Sandbox\FbPageController::class, 'processAPITest']);
 
-    Route::get('/', [Sandbox\LBC\FbPageController::class, 'showPagePosts']);
-    Route::get('/post/{post_id}', [Sandbox\LBC\FbPageController::class, 'showPostAndMainComments']);
-    Route::get('/comments/{comment_id}', [Sandbox\LBC\FbPageController::class, 'showCommentReplies']);
-    Route::post('comment', [Sandbox\LBC\FbPageController::class, 'createCommentReply']);    
+    Route::get('/', [Sandbox\FbPageController::class, 'showPagePosts']);
+    Route::get('/post/{post_id}', [Sandbox\FbPageController::class, 'showPostAndMainComments']);
+    Route::get('/comments/{comment_id}', [Sandbox\FbPageController::class, 'showCommentReplies']);
+    Route::post('comment', [Sandbox\FbPageController::class, 'createCommentReply']);    
 });
 
 // V1
 Route::prefix('v1')->group(function () {
-    Route::post('comment', [Sandbox\V1\FbPageController::class, 'createCommentReply']);    
+    Route::post('comment', [V1\FbPageController::class, 'createCommentReply']);    
 });

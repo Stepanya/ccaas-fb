@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Sandbox\LBC;
+namespace App\Http\Controllers\Api\Sandbox;
 
 use App\Http\Controllers\Controller;
 use App\Services\LBC\FbPageService;
@@ -184,11 +184,11 @@ class FbPageController extends Controller
         switch($page_id) {
             // Tritel API
             case '108729754345417':
-                return 'EAADpafV3ZCmEBAGJY9f9sjN2AZAy8Pq8DX9WXhEwGFWZCO4fwnktX4twKtVtpwV4mitGZBZAzLRIRYjKnj7grbDtWUsLnt5Ky04ZCamNhwZAd71O348cMS3Vk2ZA3ibN6W9cs0djTqbvBilrAHkBZBIegmUCmGJYeT3SQnD01LjAXp9W0tyjdk3b38K84D3hRPzYZD';
+                return env('TRITEL_API_TOKEN');
                 break;
             // LBC Express Inc
             case '107092956014139':
-                return 'EAALpK7eInSoBADN9b6ASjHXf2IZB0KFGk4C3wcOZALllsyZBZCZCvztDP3hQuiGV0hekQ6Wrs8rLZAV40kGDDmrUMzEMLsFgNS25UyNAInZCFjt9ZBTUINzF7Wb1MZB3L0BkDBnw89TRBlRRG4YYv3yWNXl0IoT1XRhLdba0qvwqfZAoi94QzsUDhhenZCTymNjtskZD';
+                return env('LBC_EXPRESS_INC_TOKEN');
                 break;
         }
     }

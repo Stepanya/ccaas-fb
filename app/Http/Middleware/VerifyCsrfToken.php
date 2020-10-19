@@ -12,7 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        'api/sandbox/webhook',
-        'api/sandbox/test-webhook',
+        'api/sandbox/lbc/webhook',
+        'api/sandbox/lbc/test-webhook',
     ];
 }
