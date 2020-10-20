@@ -24,8 +24,8 @@ use App\Http\Controllers\Api\Sandbox;
 Route::prefix('sandbox')->group(function () {
     // LBC
     // Webhook
-    // Route::get('webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
-    Route::post('webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
+    // Route::get('lbc/webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
+    Route::post('lbc/webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
     // Route::get('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
     Route::post('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
 

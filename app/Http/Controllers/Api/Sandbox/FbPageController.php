@@ -12,7 +12,6 @@ use Illuminate\Support\Facades\Log;
 class FbPageController extends Controller
 {
     public function __construct() {
-        // $this->access_token = 'EAALpK7eInSoBADN9b6ASjHXf2IZB0KFGk4C3wcOZALllsyZBZCZCvztDP3hQuiGV0hekQ6Wrs8rLZAV40kGDDmrUMzEMLsFgNS25UyNAInZCFjt9ZBTUINzF7Wb1MZB3L0BkDBnw89TRBlRRG4YYv3yWNXl0IoT1XRhLdba0qvwqfZAoi94QzsUDhhenZCTymNjtskZD';
         $this->access_token = '';
         $this->page_id = '';
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
@@ -88,119 +87,21 @@ class FbPageController extends Controller
     public function receiveDataFromTestWebhook(Request $request, FbPageService $fbPageService) {
         $page_entries = json_decode(json_encode($request->all(), true));
 
-        $fbPageService->receivePageEntryEvent($page_entries);
+        $fbPageService->receiveTestPageEntryEvent($page_entries);
 
         return response("Received content", 200);      
     }
 
-    public function receiveDataFromWebhook(Request $request) {
+    public function receiveDataFromWebhook(Request $request, FbPageService $fbPageService) {
         $page_entries = json_decode(json_encode($request->all(), true));
-            
-        // foreach ($page_entries as $page_entry) {
-        //     foreach ($page_entries->entry as $entry) {
-        //         $this->page_id = $entry->id;
 
-        //         foreach ($entry->changes as $change) {
-        //             // If comment is made by page
-        //             if ($change->value->item === 'comment' && $change->value->verb === "add" && $change->value->from->id === $this->page_id) {
-        //                 // Current datetime
-        //                 $current_datetime = new \DateTime('now', new \DateTimeZone('Asia/Manila'));
-        //                 // Entry time
-        //                 $entry_datetime = new \DateTime(date('Y-m-d H:i:s', $entry->time), new \DateTimeZone('UTC'));
-        //                 $entry_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
-        //                 // Value created_at
-        //                 $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time), new \DateTimeZone('UTC'));
-        //                 $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
-        //                 // $date->setTimestamp($change->value->created_time);
-        //                 // Storage::append('public/comments_lbc.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL . 
-        //                 Storage::append('public/comments_lbc.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
-        //                 'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL . 
-        //                 'post_id: ' . $change->value->post_id . PHP_EOL .
-        //                 'comment_id: ' . $change->value->comment_id . PHP_EOL .
-        //                 'parent_id: ' . $change->value->parent_id . PHP_EOL .
-        //                 'created_time: ' . $change->value->created_time . PHP_EOL .
-        //                 'from.id: ' . $change->value->from->id . PHP_EOL .
-        //                 'from.name: ' . $change->value->from->name . PHP_EOL .
-        //                 'message: ' . $change->value->message . PHP_EOL);
-        //                 return response("Received content", 200);
-        //                 // If comment is made by users
-        //              } else if ($change->value->item === 'comment' && $change->value->verb === "add") {
-        //             // } else if ($change->value->item === 'comment' && $change->value->from->id === '5268518223162209') {
-        //                 // Current datetime
-        //                 $current_datetime = new \DateTime('now', new \DateTimeZone('Asia/Manila'));
-        //                 // Entry time
-        //                 $entry_datetime = new \DateTime(date('Y-m-d H:i:s', $entry->time), new \DateTimeZone('UTC'));
-        //                 $entry_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
-        //                 // Value created_at
-        //                 $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time), new \DateTimeZone('UTC'));
-        //                 $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
-        //                 // $date->setTimestamp($change->value->created_time);
-        //                 // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL . 
-        //                 Storage::append('public/comments.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
-        //                 'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL . 
-        //                 'post_id: ' . $change->value->post_id . PHP_EOL .
-        //                 'comment_id: ' . $change->value->comment_id . PHP_EOL .
-        //                 'parent_id: ' . $change->value->parent_id . PHP_EOL .
-        //                 'created_time: ' . $change->value->created_time . PHP_EOL .
-        //                 'from.id: ' . $change->value->from->id . PHP_EOL .
-        //                 'from.name: ' . $change->value->from->name . PHP_EOL .
-        //                 'message: ' . $change->value->message . PHP_EOL);
-        //                 return response("Received content", 200);
-        //             }
-        //         }   
-        //     }
-        // }
+        // $fbPageService->receivePageEntryEvent($page_entries);        
 
         return response("Received content", 200);
     }
 
-    public function createCommentReply(Request $request) {
-        $message = $request->input('message');
-        $comment_id = $request->input('comment_id');
-        $this->access_token = $this->getPageAccessToken($request->input('page_id'));
-
-        // $comment_replies_request = $this->client->get($comment_id.'/comments?access_token='.$this->access_token);
-        $reply_to_comment_request = $this->client->post($comment_id.'/comments', 
-                ['json' => 
-                    [
-                        'message' => $message,
-                        'access_token' => $this->access_token
-                    ]
-                ]
-            );
-        $reply_to_comment_sc = $reply_to_comment_request->getStatusCode();
-
-        if ($reply_to_comment_sc == 200) {
-            $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());            
-            return response()->json($reply_to_comment, 200);
-        }
-
-        return response()->json([
-            'message' => 'An unexpected error has occured'
-        ], 500);
+    public function createCommentReply(Request $request, FbPageService $fbPageService) {
+        $comment_reply_response = $fbPageService->handleCommentReplyRequest($request);
+        return $comment_reply_response;
     }
-
-    private function getPageAccessToken($page_id) {
-        switch($page_id) {
-            // Tritel API
-            case '108729754345417':
-                return env('TRITEL_API_TOKEN');
-                break;
-            // LBC Express Inc
-            case '107092956014139':
-                return env('LBC_EXPRESS_INC_TOKEN');
-                break;
-        }
-    }
-
-        // private function getPageId($page_entries) {
-    //     // $page_entries = json_decode(json_encode($request->all(), true));
-    //     // Storage::append('public/page_activity.txt', json_encode($request, JSON_PRETTY_PRINT));
-    //     foreach ($page_entries as $page_entry) {
-    //         foreach ($page_entry->entry as $entry) {
-    //             Storage::append('public/page_activity.txt', $entry->id);
-    //         }
-    //     }
-    // }
-
 }
