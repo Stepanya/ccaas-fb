@@ -228,6 +228,77 @@ class FbPageService {
         ], 500);
     }
 
+    public function handleHideCommentRequest($request) {
+        $create_comment_reply_validator = Validator::make($request->all(), [
+            'page_id' => [
+                'required',
+                // Check if page_id is valid
+                function ($attribute, $value, $fail) {
+                    $access_token_check = $this->getPageAccessToken($value);
+
+                    if (!isset($access_token_check)) {
+                        $fail('The '. $attribute.' parameter provided is either invalid or the page does not exist.');
+                    }
+                },
+            ],
+            'comment_id' => [
+                'required',
+                // Check if comment_id is valid
+                function ($attribute, $value, $fail) use ($request) {
+                    $comment_id = $request->input('comment_id');
+                    $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+
+                    if (!isset($this->access_token)) {
+                        $fail('No access token has been found for accessing this comment.');
+                    } else {
+                        $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
+                        $check_comment_id_sc = $check_comment_id_request->getStatusCode();
+    
+                        if ($check_comment_id_sc !== 200) {
+                            $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
+                            $fail($check_comment_id_response->error->message);
+                        }
+                    }
+                },
+            ]
+        ],
+        [
+            'page_id.required' => 'The page_id parameter is required.',
+            'comment_id.required' => 'The comment_id parameter is required.',
+        ]);
+
+        if ($create_comment_reply_validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => implode(" ", $create_comment_reply_validator->errors()->all())
+            ], 500);
+        }
+        
+        // Process comment to be hidden
+        $comment_id = $request->input('comment_id');
+        $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+
+        $hide_comment_request = $this->client->post($comment_id, 
+            ['json' => 
+                [
+                    'is_hidden' => 'true',
+                    'access_token' => $this->access_token
+                ]
+            ]
+        );
+        $hide_comment_sc = $hide_comment_request->getStatusCode();
+
+        if ($hide_comment_sc == 200) {
+            $hide_comment = json_decode($hide_comment_request->getBody()->getContents());            
+            return response()->json($hide_comment, 200);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'An unexpected error has occured.'
+        ], 500);
+    }
+
     private function getPageAccessToken($page_id) {
         switch($page_id) {
             // Tritel API

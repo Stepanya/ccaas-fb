@@ -33,10 +33,8 @@ Route::prefix('sandbox')->group(function () {
     Route::post('authenticate', [Sandbox\FbPageController::class, 'authAPITest']);
     Route::post('process', [Sandbox\FbPageController::class, 'processAPITest']);
 
-    Route::get('/', [Sandbox\FbPageController::class, 'showPagePosts']);
-    Route::get('/post/{post_id}', [Sandbox\FbPageController::class, 'showPostAndMainComments']);
-    Route::get('/comments/{comment_id}', [Sandbox\FbPageController::class, 'showCommentReplies']);
-    Route::post('comment', [Sandbox\FbPageController::class, 'createCommentReply']);    
+    Route::post('comment', [Sandbox\FbPageController::class, 'createCommentReply']);
+    Route::post('comment/hide', [Sandbox\FbPageController::class, 'hidePostComment']);    
 });
 
 // V1

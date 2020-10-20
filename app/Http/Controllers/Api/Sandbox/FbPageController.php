@@ -104,4 +104,9 @@ class FbPageController extends Controller
         $comment_reply_response = $fbPageService->handleCommentReplyRequest($request);
         return $comment_reply_response;
     }
+
+    public function hidePostComment(Request $request, FbPageService $fbPageService) {
+        $hide_comment_response = $fbPageService->handleHideCommentRequest($request);
+        return $hide_comment_response;
+    }
 }
