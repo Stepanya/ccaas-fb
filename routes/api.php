@@ -23,11 +23,14 @@ use App\Http\Controllers\Api\Sandbox;
 // Sandbox
 Route::prefix('sandbox')->group(function () {
     // LBC
-    // Webhook
+    // FB Webhook
     // Route::get('lbc/webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
     Route::post('lbc/webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
     // Route::get('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
     Route::post('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
+
+    // Twitter Webhook
+    Route::get('lbc/twitter/test-webhook', [Sandbox\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
 
     // VANAD Test Endpoints
     Route::post('authenticate', [Sandbox\FbPageController::class, 'authAPITest']);

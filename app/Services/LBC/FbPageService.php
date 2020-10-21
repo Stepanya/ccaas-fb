@@ -11,8 +11,8 @@ class FbPageService {
     public function __construct() {
         $this->page_id = '';
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
-        // $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-tst.processes.quandago.app/api/']);
-        $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://dti-tst.processes.quandago.dev/api/']);
+        $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-tst.processes.quandago.app/api/']);
+        // $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://dti-tst.processes.quandago.dev/api/']);
     }
 
     public function receiveTestPageEntryEvent($page_entries) {
@@ -52,7 +52,8 @@ class FbPageService {
                                 env('VANAD_API_USER'), env('VANAD_API_PASS')
                             ],
                             'json' => [
-                                'Audience' => 'https://dti-tst.processes.quandago.dev'
+                                // 'Audience' => 'https://dti-tst.processes.quandago.dev'
+                                'Audience' => 'https://lbc-tst.processes.quandago.app'
                             ]
                         ]);
                 
@@ -74,22 +75,14 @@ class FbPageService {
                             'json' => [
                                 'Assignee' => 'Admin',
                                 'Priority' => 'M',
-                                'Type' => 'FC',
+                                'Type' => 'K',
                                 'RelatePath' => 'cCustomer:106',
-                                'Category' => 'BusinessName',
-                                'Subcategory' => 'Covid19_Others',
-                                'Description' => 'Test create contact',
-                                'FormData' => [
-                                    'name' => $change->value->from->name,
-                                    'message' => $change->value->message,
-                                    'page_id' => $this->page_id,
-                                    'post_id' => $change->value->post_id,
-                                    'comment_id' => $change->value->comment_id,
-                                    'user_id' => $change->value->from->id,
-                                    'created_time' => $change->value->created_time
-                                ],
-                                'Remarks' => 'Test remarks.',
-                                'RelateCode' => 'InteractionCustomer'
+                                'created_time' => $change->value->created_time,
+                                'name' => $change->value->from->id,
+                                'message' => $change->value->message,
+                                'comment_id' => $change->value->comment_id,
+                                'page_id' => $this->page_id,
+                                'post_id' => $change->value->post_id
                             ],
                             'headers' => [
                                 'ProcessRunnerToken' => $process_runner_token
@@ -278,7 +271,8 @@ class FbPageService {
         $comment_id = $request->input('comment_id');
         $this->access_token = $this->getPageAccessToken($request->input('page_id'));
 
-        $hide_comment_request = $this->client->post($comment_id, 
+        $hide_comment_request = $this->client->post($comment_id,
+            ['http_errors' => false], 
             ['json' => 
                 [
                     'is_hidden' => 'true',
@@ -295,7 +289,7 @@ class FbPageService {
 
         return response()->json([
             'success' => false,
-            'message' => 'An unexpected error has occured.'
+            'message' => 'The comment_id specified has already been hidden.'
         ], 500);
     }
 

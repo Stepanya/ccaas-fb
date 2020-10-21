@@ -25,8 +25,8 @@ class FbPageController extends Controller
                 env('VANAD_API_USER'), env('VANAD_API_PASS')
             ],
             'json' => [
-                // 'Audience' => 'https://lbc-tst.processes.quandago.app'
-                'Audience' => 'https://dti-tst.processes.quandago.dev'
+                'Audience' => 'https://lbc-tst.processes.quandago.app'
+                // 'Audience' => 'https://dti-tst.processes.quandago.dev'
             ]
         ]);
 
@@ -53,8 +53,8 @@ class FbPageController extends Controller
                 'Priority' => 'M',
                 'Type' => 'FC',
                 'RelatePath' => 'cCustomer:106',
-                'Category' => 'BusinessName',
-                'Subcategory' => 'Covid19_Others',
+                'Category' => 'Contacted',
+                'Subcategory' => 'Contacted_CustomerNotAvailable',
                 'Description' => 'Test create contact',
                 'FormData' => [
                     'name' => 'Juan dela Cruz',
