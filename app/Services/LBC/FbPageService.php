@@ -2,6 +2,7 @@
 
 namespace App\Services\LBC;
 
+use App\Models\FbWebhook;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -96,7 +97,22 @@ class FbPageService {
                             Storage::append('public/comments_tritel_user.txt', 
                                 'CaseId: ' . $create_process_response->CaseId . PHP_EOL . 
                                 'ContactId: ' . $create_process_response->ContactId . PHP_EOL);
-                        } 
+                        }
+                        
+                        // Insert page entry to DB
+                        $page_entry = new FbWebhook;
+                        $page_entry->page_id = $this->page_id;
+                        $page_entry->post_id = $change->value->post_id;
+                        $page_entry->comment_id = $change->value->comment_id;
+                        $page_entry->user_id = $change->value->from->id;
+                        $page_entry->name = $change->value->from->name;
+                        $page_entry->message = $change->value->message;
+                        $page_entry->created_time = $change->value->created_time;
+                        if ($create_process_sc == 200) {
+                            $page_entry->status = 1;
+                        }
+                        $page_entry->organization = $this->getTenantName($this->page_id);
+                        $page_entry->save();
                         
                         // else {
                         //     return response()->json([
@@ -302,6 +318,19 @@ class FbPageService {
             // LBC Express Inc
             case '107092956014139':
                 return env('LBC_EXPRESS_INC_TOKEN');
+                break;
+        }
+    }
+
+    private function getTenantName($page_id) {
+        switch($page_id) {
+            // Tritel API
+            case '108729754345417':
+                return 'Tritel';
+                break;
+            // LBC Express Inc
+            case '107092956014139':
+                return 'LBC';
                 break;
         }
     }
