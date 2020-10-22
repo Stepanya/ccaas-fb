@@ -77,13 +77,15 @@ class FbPageService {
                                 'Assignee' => 'Admin',
                                 'Priority' => 'M',
                                 'Type' => 'K',
-                                'RelatePath' => 'cCustomer:106',
-                                'created_time' => $change->value->created_time,
-                                'name' => $change->value->from->id,
-                                'message' => $change->value->message,
-                                'comment_id' => $change->value->comment_id,
-                                'page_id' => $this->page_id,
-                                'post_id' => $change->value->post_id
+                                'RelatePath' => 'cCustomer:106/',
+                                'FormData' => [
+                                    'created_time' => $change->value->created_time,
+                                    'name' => $change->value->from->id,
+                                    'message' => $change->value->message,
+                                    'comment_id' => $change->value->comment_id,
+                                    'page_id' => $this->page_id,
+                                    'post_id' => $change->value->post_id
+                                ]
                             ],
                             'headers' => [
                                 'ProcessRunnerToken' => $process_runner_token
@@ -287,15 +289,15 @@ class FbPageService {
         $comment_id = $request->input('comment_id');
         $this->access_token = $this->getPageAccessToken($request->input('page_id'));
 
-        $hide_comment_request = $this->client->post($comment_id,
-            ['http_errors' => false], 
-            ['json' => 
+        $hide_comment_request = $this->client->post($comment_id, [
+            'json' => 
                 [
                     'is_hidden' => 'true',
                     'access_token' => $this->access_token
-                ]
-            ]
-        );
+                ],
+            'http_errors' => false
+        ]);
+
         $hide_comment_sc = $hide_comment_request->getStatusCode();
 
         if ($hide_comment_sc == 200) {
@@ -303,9 +305,12 @@ class FbPageService {
             return response()->json($hide_comment, 200);
         }
 
+        // Get error message
+        $hide_comment_err_response = json_decode($hide_comment_request->getBody()->getContents());
+
         return response()->json([
             'success' => false,
-            'message' => 'The comment_id specified has already been hidden.'
+            'message' => $hide_comment_err_response->error->error_user_msg
         ], 500);
     }
 
