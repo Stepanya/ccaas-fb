@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\LBC;
+namespace App\Services\Sandbox\LBC;
 
 use App\Models\FbWebhook;
 use Illuminate\Http\Request;

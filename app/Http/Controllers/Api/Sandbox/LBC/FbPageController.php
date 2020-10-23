@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Sandbox\LBC;
 
 use App\Http\Controllers\Controller;
-use App\Services\LBC\FbPageService;
+use App\Services\Sandbox\LBC\FbPageService;
 use GuzzleHttp\Promise;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
