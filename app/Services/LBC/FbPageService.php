@@ -13,6 +13,7 @@ class FbPageService {
         $this->page_id = '';
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
         $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-tst.processes.quandago.app/api/']);
+        $this->api_key = 'AX3DTdEQKUitb3nb';
         // $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://dti-tst.processes.quandago.dev/api/']);
     }
 
@@ -166,151 +167,168 @@ class FbPageService {
     }
     
     public function handleCommentReplyRequest($request) {
-        $create_comment_reply_validator = Validator::make($request->all(), [
-            'message' => 'required',
-            'page_id' => [
-                'required',
-                // Check if page_id is valid
-                function ($attribute, $value, $fail) {
-                    $access_token_check = $this->getPageAccessToken($value);
+        // Get X-API-KEY value from headers.
+        $header_api_key = $request->header('X-API-KEY');
 
-                    if (!isset($access_token_check)) {
-                        $fail('The '. $attribute.' parameter provided is either invalid or the page does not exist.');
-                    }
-                },
-            ],
-            'comment_id' => [
-                'required',
-                // Check if comment_id is valid
-                function ($attribute, $value, $fail) use ($request) {
-                    $comment_id = $request->input('comment_id');
-                    $this->access_token = $this->getPageAccessToken($request->input('page_id'));
-
-                    if (!isset($this->access_token)) {
-                        $fail('No access token has been found for accessing this comment.');
-                    } else {
-                        $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
-                        $check_comment_id_sc = $check_comment_id_request->getStatusCode();
+        if ($this->api_key === $header_api_key) {
+            $create_comment_reply_validator = Validator::make($request->all(), [
+                'message' => 'required',
+                'page_id' => [
+                    'required',
+                    // Check if page_id is valid
+                    function ($attribute, $value, $fail) {
+                        $access_token_check = $this->getPageAccessToken($value);
     
-                        if ($check_comment_id_sc !== 200) {
-                            $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
-                            $fail($check_comment_id_response->error->message);
+                        if (!isset($access_token_check)) {
+                            $fail('The '. $attribute.' parameter provided is either invalid or the page does not exist.');
                         }
-                    }
-                },
-            ]
-        ],
-        [
-            'message.required' => 'The message parameter is required.',
-            'page_id.required' => 'The page_id parameter is required.',
-            'comment_id.required' => 'The comment_id parameter is required.',
-        ]);
-
-        if ($create_comment_reply_validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => implode(" ", $create_comment_reply_validator->errors()->all())
-            ], 500);
-        }
-
-        // Create comment reply
-        $message = $request->input('message');
-        $comment_id = $request->input('comment_id');
-        $this->access_token = $this->getPageAccessToken($request->input('page_id'));
-
-        $reply_to_comment_request = $this->client->post($comment_id.'/comments', 
-            ['json' => 
-                [
+                    },
+                ],
+                'comment_id' => [
+                    'required',
+                    // Check if comment_id is valid
+                    function ($attribute, $value, $fail) use ($request) {
+                        $comment_id = $request->input('comment_id');
+                        $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+    
+                        if (!isset($this->access_token)) {
+                            $fail('No access token has been found for accessing this comment.');
+                        } else {
+                            $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
+                            $check_comment_id_sc = $check_comment_id_request->getStatusCode();
+        
+                            if ($check_comment_id_sc !== 200) {
+                                $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
+                                $fail($check_comment_id_response->error->message);
+                            }
+                        }
+                    },
+                ]
+            ],
+            [
+                'message.required' => 'The message parameter is required.',
+                'page_id.required' => 'The page_id parameter is required.',
+                'comment_id.required' => 'The comment_id parameter is required.',
+            ]);
+    
+            if ($create_comment_reply_validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => implode(" ", $create_comment_reply_validator->errors()->all())
+                ], 500);
+            }
+    
+            // Create comment reply
+            $message = $request->input('message');
+            $comment_id = $request->input('comment_id');
+            $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+    
+            $reply_to_comment_request = $this->client->post($comment_id.'/comments', [
+                'json' => [
                     'message' => $message,
                     'access_token' => $this->access_token
                 ]
-            ]
-        );
-        $reply_to_comment_sc = $reply_to_comment_request->getStatusCode();
-
-        if ($reply_to_comment_sc == 200) {
-            $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());            
-            return response()->json($reply_to_comment, 200);
+            ]);
+            $reply_to_comment_sc = $reply_to_comment_request->getStatusCode();
+    
+            if ($reply_to_comment_sc == 200) {
+                $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());            
+                return response()->json($reply_to_comment, 200);
+            }
+    
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error has occured'
+            ], 500);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'An unexpected error has occured'
+            'message' => 'The API key sent is invalid.'
         ], 500);
     }
 
     public function handleHideCommentRequest($request) {
-        $create_comment_reply_validator = Validator::make($request->all(), [
-            'page_id' => [
-                'required',
-                // Check if page_id is valid
-                function ($attribute, $value, $fail) {
-                    $access_token_check = $this->getPageAccessToken($value);
+        // Get X-API-KEY value from headers.
+        $header_api_key = $request->header('X-API-KEY');
 
-                    if (!isset($access_token_check)) {
-                        $fail('The '. $attribute.' parameter provided is either invalid or the page does not exist.');
-                    }
-                },
-            ],
-            'comment_id' => [
-                'required',
-                // Check if comment_id is valid
-                function ($attribute, $value, $fail) use ($request) {
-                    $comment_id = $request->input('comment_id');
-                    $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+        if ($this->api_key === $header_api_key) {
+            $create_comment_reply_validator = Validator::make($request->all(), [
+                'page_id' => [
+                    'required',
+                    // Check if page_id is valid
+                    function ($attribute, $value, $fail) {
+                        $access_token_check = $this->getPageAccessToken($value);
 
-                    if (!isset($this->access_token)) {
-                        $fail('No access token has been found for accessing this comment.');
-                    } else {
-                        $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
-                        $check_comment_id_sc = $check_comment_id_request->getStatusCode();
-    
-                        if ($check_comment_id_sc !== 200) {
-                            $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
-                            $fail($check_comment_id_response->error->message);
+                        if (!isset($access_token_check)) {
+                            $fail('The '. $attribute.' parameter provided is either invalid or the page does not exist.');
                         }
-                    }
-                },
-            ]
-        ],
-        [
-            'page_id.required' => 'The page_id parameter is required.',
-            'comment_id.required' => 'The comment_id parameter is required.',
-        ]);
+                    },
+                ],
+                'comment_id' => [
+                    'required',
+                    // Check if comment_id is valid
+                    function ($attribute, $value, $fail) use ($request) {
+                        $comment_id = $request->input('comment_id');
+                        $this->access_token = $this->getPageAccessToken($request->input('page_id'));
 
-        if ($create_comment_reply_validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => implode(" ", $create_comment_reply_validator->errors()->all())
-            ], 500);
-        }
+                        if (!isset($this->access_token)) {
+                            $fail('No access token has been found for accessing this comment.');
+                        } else {
+                            $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
+                            $check_comment_id_sc = $check_comment_id_request->getStatusCode();
         
-        // Process comment to be hidden
-        $comment_id = $request->input('comment_id');
-        $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+                            if ($check_comment_id_sc !== 200) {
+                                $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
+                                $fail($check_comment_id_response->error->message);
+                            }
+                        }
+                    },
+                ]
+            ],
+            [
+                'page_id.required' => 'The page_id parameter is required.',
+                'comment_id.required' => 'The comment_id parameter is required.',
+            ]);
 
-        $hide_comment_request = $this->client->post($comment_id, [
-            'json' => 
-                [
+            if ($create_comment_reply_validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => implode(" ", $create_comment_reply_validator->errors()->all())
+                ], 500);
+            }
+            
+            // Process comment to be hidden
+            $comment_id = $request->input('comment_id');
+            $this->access_token = $this->getPageAccessToken($request->input('page_id'));
+
+            $hide_comment_request = $this->client->post($comment_id, [
+                'json' => [
                     'is_hidden' => 'true',
                     'access_token' => $this->access_token
                 ],
-            'http_errors' => false
-        ]);
+                'http_errors' => false
+            ]);
 
-        $hide_comment_sc = $hide_comment_request->getStatusCode();
+            $hide_comment_sc = $hide_comment_request->getStatusCode();
 
-        if ($hide_comment_sc == 200) {
-            $hide_comment = json_decode($hide_comment_request->getBody()->getContents());            
-            return response()->json($hide_comment, 200);
+            if ($hide_comment_sc == 200) {
+                $hide_comment = json_decode($hide_comment_request->getBody()->getContents());            
+                return response()->json($hide_comment, 200);
+            }
+
+            // Get error message
+            $hide_comment_err_response = json_decode($hide_comment_request->getBody()->getContents());
+
+            return response()->json([
+                'success' => false,
+                'message' => $hide_comment_err_response->error->error_user_msg
+            ], 500);
         }
-
-        // Get error message
-        $hide_comment_err_response = json_decode($hide_comment_request->getBody()->getContents());
 
         return response()->json([
             'success' => false,
-            'message' => $hide_comment_err_response->error->error_user_msg
+            'message' => 'The API key sent is invalid.'
         ], 500);
     }
 
