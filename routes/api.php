@@ -24,23 +24,32 @@ use App\Http\Controllers\Api\Sandbox;
 Route::prefix('sandbox')->group(function () {
     // LBC
     // FB Webhook
-    // Route::get('lbc/webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
-    Route::post('lbc/webhook', [Sandbox\FbPageController::class, 'receiveDataFromWebhook']);
-    // Route::get('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
-    Route::post('lbc/test-webhook', [Sandbox\FbPageController::class, 'receiveDataFromTestWebhook']);
+    // Route::get('lbc/webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromWebhook']);
+    Route::post('lbc/webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromWebhook']);
+    // Route::get('lbc/test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromTestWebhook']);
+    Route::post('lbc/test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromTestWebhook']);
 
     // Twitter Webhook
-    Route::get('lbc/twitter/test-webhook', [Sandbox\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
+    Route::get('lbc/twitter/test-webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
+    Route::post('lbc/twitter/test-webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
+    Route::post('lbc/twitter/register-webhook', [Sandbox\LBC\TwitterFeedController::class, 'registerWebhook']);
+    Route::post('lbc/twitter/subscribe-to-webhook', [Sandbox\LBC\TwitterFeedController::class, 'addWebhookSubscription']);
 
     // VANAD Test Endpoints
-    Route::post('authenticate', [Sandbox\FbPageController::class, 'authAPITest']);
-    Route::post('process', [Sandbox\FbPageController::class, 'processAPITest']);
+    Route::post('authenticate', [Sandbox\LBC\FbPageController::class, 'authAPITest']);
+    Route::post('process', [Sandbox\LBC\FbPageController::class, 'processAPITest']);
 
-    Route::post('comment', [Sandbox\FbPageController::class, 'createCommentReply']);
-    Route::post('comment/hide', [Sandbox\FbPageController::class, 'hidePostComment']);    
+    Route::post('comment', [Sandbox\LBC\FbPageController::class, 'createCommentReply']);
+    Route::post('comment/hide', [Sandbox\LBC\FbPageController::class, 'hidePostComment']);
+    
+    // V1
+    Route::prefix('v1')->group(function () {
+        Route::post('comment', [Sandbox\LBC\FbPageController::class, 'createCommentReply']);
+        Route::post('comment/hide', [Sandbox\LBC\FbPageController::class, 'hidePostComment']);
+    });
 });
 
 // V1
 Route::prefix('v1')->group(function () {
-    Route::post('comment', [V1\FbPageController::class, 'createCommentReply']);    
+    Route::post('comment', [V1\LBC\FbPageController::class, 'createCommentReply']);    
 });

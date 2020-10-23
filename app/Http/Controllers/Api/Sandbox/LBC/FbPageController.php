@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Sandbox;
+namespace App\Http\Controllers\Api\Sandbox\LBC;
 
 use App\Http\Controllers\Controller;
 use App\Services\LBC\FbPageService;

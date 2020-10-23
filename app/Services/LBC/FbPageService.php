@@ -137,6 +137,8 @@ class FbPageService {
 
                 foreach ($entry->changes as $change) {
                     // If comment is made by users
+                    // Temporarily block comments from LBC Express PH
+                    // && $this->page_id !== '107092956014139' 
                     if ($change->value->item === 'comment' && $change->value->verb === "add" && $change->value->from->id !== $this->page_id) {
                     // } else if ($change->value->item === 'comment' && $change->value->from->id === '5268518223162209') {
                         // Current datetime
@@ -158,6 +160,21 @@ class FbPageService {
                         'from.id: ' . $change->value->from->id . PHP_EOL .
                         'from.name: ' . $change->value->from->name . PHP_EOL .
                         'message: ' . $change->value->message . PHP_EOL);
+
+                        // Insert page entry to DB
+                        $page_entry = new FbWebhook;
+                        $page_entry->page_id = $this->page_id;
+                        $page_entry->post_id = $change->value->post_id;
+                        $page_entry->comment_id = $change->value->comment_id;
+                        $page_entry->user_id = $change->value->from->id;
+                        $page_entry->name = $change->value->from->name;
+                        $page_entry->message = $change->value->message;
+                        $page_entry->created_time = $change->value->created_time;
+                        // if ($create_process_sc == 200) {
+                            $page_entry->status = 1;
+                        // }
+                        $page_entry->organization = $this->getTenantName($this->page_id);
+                        $page_entry->save();
 
                         return true;
                     }
@@ -338,9 +355,18 @@ class FbPageService {
             case '108729754345417':
                 return env('TRITEL_API_TOKEN');
                 break;
-            // LBC Express Inc
+            // LBC Express Inc (PH)
             case '107092956014139':
-                return env('LBC_EXPRESS_INC_TOKEN');
+                return env('LBC_EXPRESS_INC_PH_TOKEN');
+                break;
+            // North America (NA)
+            // LBC Express Inc. (Canada)
+            case '767635103382140':
+                return env('LBC_EXPRESS_INC_CA_TOKEN');
+                break;
+            // LBC Express Inc. (US)
+            case '1625673577698440':
+                return env('LBC_EXPRESS_INC_US_TOKEN');
                 break;
         }
     }
@@ -351,8 +377,13 @@ class FbPageService {
             case '108729754345417':
                 return 'Tritel';
                 break;
-            // LBC Express Inc
+            // LBC Express Inc (PH)
             case '107092956014139':
+            // North America (NA)
+            // LBC Express Inc. (Canada)
+            case '767635103382140':
+            // LBC Express Inc. (US)
+            case '1625673577698440':
                 return 'LBC';
                 break;
         }
