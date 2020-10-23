@@ -229,10 +229,16 @@ class FbPageService {
             ]);
     
             if ($create_comment_reply_validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => implode(" ", $create_comment_reply_validator->errors()->all())
-                ], 500);
+                // Store error messages inside variable
+                $err_msg = implode(" ", $create_comment_reply_validator->errors()->all());
+                
+                // Initialize array
+                $data = array();
+                $data['success'] = false;
+                $data['message'] = $err_msg;
+                $data['status_code'] = 500;
+
+                return $data;
             }
     
             // Create comment reply
@@ -250,19 +256,26 @@ class FbPageService {
     
             if ($reply_to_comment_sc == 200) {
                 $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());            
-                return response()->json($reply_to_comment, 200);
+
+                $data = array();
+                $data['success'] = true;
+                $data['message'] = 'Comment created successfully. ID: ' . $reply_to_comment->id;
+                $data['status_code'] = 200;
+                return $data;
             }
     
-            return response()->json([
-                'success' => false,
-                'message' => 'An unexpected error has occured'
-            ], 500);
+            $data = array();
+            $data['success'] = false;
+            $data['message'] = 'An unexpected error has occured.';
+            $data['status_code'] = 500;
+            return $data;
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'The API key sent is invalid.'
-        ], 500);
+        $data = array();
+        $data['success'] = false;
+        $data['message'] = 'The API key sent is invalid.';
+        $data['status_code'] = 500;
+        return $data;
     }
 
     public function handleHideCommentRequest($request) {
@@ -309,10 +322,16 @@ class FbPageService {
             ]);
 
             if ($create_comment_reply_validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => implode(" ", $create_comment_reply_validator->errors()->all())
-                ], 500);
+                // Store error messages inside variable
+                $err_msg = implode(" ", $create_comment_reply_validator->errors()->all());
+                
+                // Initialize array
+                $data = array();
+                $data['success'] = false;
+                $data['message'] = $err_msg;
+                $data['status_code'] = 500;
+
+                return $data;
             }
             
             // Process comment to be hidden
@@ -331,22 +350,29 @@ class FbPageService {
 
             if ($hide_comment_sc == 200) {
                 $hide_comment = json_decode($hide_comment_request->getBody()->getContents());            
-                return response()->json($hide_comment, 200);
+
+                $data = array();
+                $data['success'] = true;
+                $data['message'] = 'Comment hidden successfully.';
+                $data['status_code'] = 200;
+                return $data;
             }
 
             // Get error message
             $hide_comment_err_response = json_decode($hide_comment_request->getBody()->getContents());
 
-            return response()->json([
-                'success' => false,
-                'message' => $hide_comment_err_response->error->error_user_msg
-            ], 500);
+            $data = array();
+            $data['success'] = false;
+            $data['message'] = $hide_comment_err_response->error->error_user_msg;
+            $data['status_code'] = 500;
+            return $data;
         }
 
-        return response()->json([
-            'success' => false,
-            'message' => 'The API key sent is invalid.'
-        ], 500);
+        $data = array();
+        $data['success'] = false;
+        $data['message'] = 'The API key sent is invalid.';
+        $data['status_code'] = 500;
+        return $data;
     }
 
     private function getPageAccessToken($page_id) {

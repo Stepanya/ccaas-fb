@@ -95,18 +95,24 @@ class FbPageController extends Controller
     public function receiveDataFromWebhook(Request $request, FbPageService $fbPageService) {
         $page_entries = json_decode(json_encode($request->all(), true));
 
-        // $fbPageService->receivePageEntryEvent($page_entries);        
+        $fbPageService->receivePageEntryEvent($page_entries);        
 
         return response("Received content", 200);
     }
 
     public function createCommentReply(Request $request, FbPageService $fbPageService) {
         $comment_reply_response = $fbPageService->handleCommentReplyRequest($request);
-        return $comment_reply_response;
+        return response()->json([
+            'success' => $comment_reply_response['success'],
+            'message' => $comment_reply_response['message'],
+        ], $comment_reply_response['status_code']);
     }
 
     public function hidePostComment(Request $request, FbPageService $fbPageService) {
         $hide_comment_response = $fbPageService->handleHideCommentRequest($request);
-        return $hide_comment_response;
+        return response()->json([
+            'success' => $hide_comment_response['success'],
+            'message' => $hide_comment_response['message'],
+        ], $hide_comment_response['status_code']);
     }
 }
