@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Sandbox\LBC;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CreateCommentReplyRequest;
+use App\Http\Requests\HidePostCommentRequest;
 use App\Services\Sandbox\LBC\FbPageService;
 use GuzzleHttp\Promise;
 use Illuminate\Http\Request;
@@ -100,16 +102,22 @@ class FbPageController extends Controller
         return response("Received content", 200);
     }
 
-    public function createCommentReply(Request $request, FbPageService $fbPageService) {
-        $comment_reply_response = $fbPageService->handleCommentReplyRequest($request);
+    public function createCommentReply(CreateCommentReplyRequest $request, FbPageService $fbPageService) {
+        // Get validated inputs from request
+        $req_body = json_decode(json_encode($request->validated()));
+
+        $comment_reply_response = $fbPageService->handleCommentReplyRequest($req_body);
         return response()->json([
             'success' => $comment_reply_response['success'],
             'message' => $comment_reply_response['message'],
         ], $comment_reply_response['status_code']);
     }
 
-    public function hidePostComment(Request $request, FbPageService $fbPageService) {
-        $hide_comment_response = $fbPageService->handleHideCommentRequest($request);
+    public function hidePostComment(HidePostCommentRequest $request, FbPageService $fbPageService) {
+        // Get validated inputs from request
+        $req_body = json_decode(json_encode($request->validated()));
+        
+        $hide_comment_response = $fbPageService->handleHideCommentRequest($req_body);
         return response()->json([
             'success' => $hide_comment_response['success'],
             'message' => $hide_comment_response['message'],
