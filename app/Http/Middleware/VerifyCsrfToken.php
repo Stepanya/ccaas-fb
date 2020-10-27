@@ -14,5 +14,6 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         'api/sandbox/lbc/webhook',
         'api/sandbox/lbc/test-webhook',
+        'api/sandbox/lbc/instagram/test-webhook',
     ];
 }

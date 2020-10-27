@@ -32,8 +32,10 @@ Route::prefix('sandbox')->group(function () {
     // Twitter Webhook
     Route::get('lbc/twitter/test-webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
     Route::post('lbc/twitter/test-webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
-    Route::post('lbc/twitter/register-webhook', [Sandbox\LBC\TwitterFeedController::class, 'registerWebhook']);
-    Route::post('lbc/twitter/subscribe-to-webhook', [Sandbox\LBC\TwitterFeedController::class, 'addWebhookSubscription']);
+
+    // Instagram Webhook
+    // Route::get('lbc/instagram/test-webhook', [Sandbox\LBC\InstagramFeedController::class, 'receiveDataFromTestWebhook']);
+    Route::post('lbc/instagram/test-webhook', [Sandbox\LBC\InstagramFeedController::class, 'receiveDataFromTestWebhook']);
 
     // VANAD Test Endpoints
     Route::post('authenticate', [Sandbox\LBC\FbPageController::class, 'authAPITest']);
