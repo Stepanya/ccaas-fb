@@ -73,13 +73,14 @@ class FbPageService {
                         // Create Process via Process API
                         $create_process_request = $this->vanad_client->post('package/process/contact', [
                             'json' => [
-                                'Assignee' => 'Admin',
+                                'Assignee' => 'CS Facebook Comments',
                                 'Priority' => 'M',
                                 'Type' => 'K',
-                                'RelatePath' => 'cCustomer:106/',
+                                'RelatePath' => 'Anonymous:' . $change->value->from->id,
                                 'FormData' => [
                                     'created_time' => $change->value->created_time,
-                                    'name' => $change->value->from->id,
+                                    'name' => $change->value->from->name,
+                                    'customer_facebook_id' => $change->value->from->id,
                                     'message' => $change->value->message,
                                     'comment_id' => $change->value->comment_id,
                                     'page_id' => $this->page_id,
