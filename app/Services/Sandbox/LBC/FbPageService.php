@@ -3,6 +3,7 @@
 namespace App\Services\Sandbox\LBC;
 
 use App\Models\FbWebhook;
+use App\Models\FbPagePost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 class FbPageService {
     public function __construct() {
         $this->page_id = '';
+        $this->access_token = '';
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
         $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-acc.processes.quandago.app/api/']);
     }
@@ -28,17 +30,24 @@ class FbPageService {
                     // } else if ($change->value->item === 'comment' && $change->value->from->id === '5268518223162209') {
                         // Current datetime
                         $current_datetime = new \DateTime('now', new \DateTimeZone('Asia/Manila'));
+                        
                         // Entry time
                         $entry_datetime = new \DateTime(date('Y-m-d H:i:s', $entry->time), new \DateTimeZone('UTC'));
                         $entry_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
+                        
                         // Value created_at
                         $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time), new \DateTimeZone('UTC'));
                         $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
+                        
+                        // Get post details
+                        $page_post_details = $this->getPagePostDetails($change->value->post_id, $this->page_id);
+
                         // $date->setTimestamp($change->value->created_time);
                         // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL . 
                         Storage::append('public/comments_tritel_user.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
                         'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL . 
                         'post_id: ' . $change->value->post_id . PHP_EOL .
+                        'post_content: ' . $page_post_details . PHP_EOL .
                         'comment_id: ' . $change->value->comment_id . PHP_EOL .
                         'parent_id: ' . $change->value->parent_id . PHP_EOL .
                         'created_time: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL .
@@ -85,7 +94,8 @@ class FbPageService {
                                     'message' => $change->value->message,
                                     'comment_id' => $change->value->comment_id,
                                     'page_id' => $this->page_id,
-                                    'post_id' => $change->value->post_id
+                                    'post_id' => $change->value->post_id,
+                                    'post_content' => $page_post_details
                                 ]
                             ],
                             'headers' => [
@@ -124,8 +134,18 @@ class FbPageService {
                         // }
 
                         return true;
+                    // Check if a status is made by the page 
+                    } else if ($change->value->item === 'status' && $change->value->verb === 'add') {
+                        // Storage::append('public/page_activity.txt', json_encode($page_entries, JSON_PRETTY_PRINT));
+                        // return true;
+                        $page_post = new FbPagePost;
+                        $page_post->post_id = $change->value->post_id;
+                        $page_post->details = $change->value->message;
+                        $page_post->save();
+
+                        return true;
                     }
-                }   
+                }  
             }
         }
     }
@@ -247,6 +267,26 @@ class FbPageService {
         $data['message'] = $hide_comment_err_response->error->error_user_msg;
         $data['status_code'] = 500;
         return $data;
+    }
+
+    private function getPagePostDetails($post_id, $page_id) {
+        // If no posts are found related to post_id, send GET request to Graph API post endpoint 
+        $page_post = FbPagePost::where('post_id', $post_id)->firstOr(function() use ($post_id, $page_id) {
+            $this->access_token = $this->getPageAccessToken($page_id);
+            $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
+            $find_page_post_sc = $find_page_post_request->getStatusCode();
+
+            if ($find_page_post_sc == 200) {
+                $page_post = json_decode($find_page_post_request->getBody()->getContents());
+                $page_post_details = $page_post->message;                            
+                return FbPagePost::create([
+                    'post_id' => $post_id,
+                    'details' => $page_post->message,
+                ]);
+            }
+        });
+        
+        return $page_post->details;
     }
 
     private function getPageAccessToken($page_id) {
