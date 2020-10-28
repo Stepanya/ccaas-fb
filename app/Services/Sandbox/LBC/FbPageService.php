@@ -12,7 +12,7 @@ class FbPageService {
     public function __construct() {
         $this->page_id = '';
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
-        $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-tst.processes.quandago.app/api/']);
+        $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-acc.processes.quandago.app/api/']);
     }
 
     public function receiveTestPageEntryEvent($page_entries) {
@@ -41,7 +41,7 @@ class FbPageService {
                         'post_id: ' . $change->value->post_id . PHP_EOL .
                         'comment_id: ' . $change->value->comment_id . PHP_EOL .
                         'parent_id: ' . $change->value->parent_id . PHP_EOL .
-                        'created_time: ' . $change->value->created_time . PHP_EOL .
+                        'created_time: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL .
                         'from.id: ' . $change->value->from->id . PHP_EOL .
                         'from.name: ' . $change->value->from->name . PHP_EOL .
                         'message: ' . $change->value->message . PHP_EOL);
@@ -53,7 +53,8 @@ class FbPageService {
                             ],
                             'json' => [
                                 // 'Audience' => 'https://dti-tst.processes.quandago.dev'
-                                'Audience' => 'https://lbc-tst.processes.quandago.app'
+                                // 'Audience' => 'https://lbc-tst.processes.quandago.app'
+                                'Audience' => 'https://lbc-acc.processes.quandago.app'
                             ]
                         ]);
                 
@@ -75,10 +76,10 @@ class FbPageService {
                             'json' => [
                                 'Assignee' => 'CS Facebook Comments',
                                 'Priority' => 'M',
-                                'Type' => 'K',
+                                'Type' => 'L',
                                 'RelatePath' => 'Anonymous:' . $change->value->from->id,
                                 'FormData' => [
-                                    'created_time' => $change->value->created_time,
+                                    'created_time' => $created_at_datetime->format('Y-m-d H:i:s'),
                                     'name' => $change->value->from->name,
                                     'customer_facebook_id' => $change->value->from->id,
                                     'message' => $change->value->message,
