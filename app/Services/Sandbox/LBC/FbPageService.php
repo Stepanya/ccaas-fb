@@ -5,6 +5,7 @@ namespace App\Services\Sandbox\LBC;
 use App\Models\FbWebhook;
 use App\Models\FbPagePost;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -26,7 +27,7 @@ class FbPageService {
 
                 foreach ($entry->changes as $change) {
                     // If comment is made by users
-                    if ($change->value->item === 'comment' && $change->value->verb === "add") {
+                    if ($change->value->item === 'comment' && $change->value->verb === "add" && $change->value->from->id !== $this->page_id) {
                     // } else if ($change->value->item === 'comment' && $change->value->from->id === '5268518223162209') {
                         // Current datetime
                         $current_datetime = new \DateTime('now', new \DateTimeZone('Asia/Manila'));
@@ -270,23 +271,30 @@ class FbPageService {
     }
 
     private function getPagePostDetails($post_id, $page_id) {
-        // If no posts are found related to post_id, send GET request to Graph API post endpoint 
-        $page_post = FbPagePost::where('post_id', $post_id)->firstOr(function() use ($post_id, $page_id) {
-            $this->access_token = $this->getPageAccessToken($page_id);
-            $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
-            $find_page_post_sc = $find_page_post_request->getStatusCode();
+        // If no posts are found related to post_id, send GET request to Graph API post endpoint
+        $cache_key = 'post_id_' . $post_id;
+        $cached_time = 60 * 60 * 24 * 7; // 1 week
 
-            if ($find_page_post_sc == 200) {
-                $page_post = json_decode($find_page_post_request->getBody()->getContents());
-                $page_post_details = $page_post->message;                            
-                return FbPagePost::create([
-                    'post_id' => $post_id,
-                    'details' => $page_post->message,
-                ]);
-            }
+        $cached_post = Cache::remember($cache_key, $cached_time, function () use ($post_id, $page_id) {
+            $page_post = FbPagePost::where('post_id', $post_id)->firstOr(function() use ($post_id, $page_id) {
+                $this->access_token = $this->getPageAccessToken($page_id);
+                $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
+                $find_page_post_sc = $find_page_post_request->getStatusCode();
+    
+                if ($find_page_post_sc == 200) {
+                    $page_post = json_decode($find_page_post_request->getBody()->getContents());
+                    $page_post_details = $page_post->message;                            
+                    return FbPagePost::create([
+                        'post_id' => $post_id,
+                        'details' => $page_post->message,
+                    ]);
+                }
+            });
+
+            return $page_post->details;
         });
         
-        return $page_post->details;
+        return $cached_post;
     }
 
     private function getPageAccessToken($page_id) {
