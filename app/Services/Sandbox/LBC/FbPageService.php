@@ -65,7 +65,8 @@ class FbPageService {
                                 // 'Audience' => 'https://dti-tst.processes.quandago.dev'
                                 // 'Audience' => 'https://lbc-tst.processes.quandago.app'
                                 'Audience' => 'https://lbc-acc.processes.quandago.app'
-                            ]
+                            ],
+                            'http_errors' => false 
                         ]);
                 
                         $auth_api_sc = $auth_api_request->getStatusCode();
@@ -73,7 +74,10 @@ class FbPageService {
                         if ($auth_api_sc == 200) {
                             $auth_api_response = $auth_api_request->getBody()->getContents();            
                             $process_runner_token = $auth_api_response;
-                        } 
+                        } else {
+                            $auth_api_phrase = $auth_api_request->getReasonPhrase();
+                            Log::info("Authorization: " . $auth_api_sc . " " . $auth_api_phrase);
+                        }
                         
                         // else {
                         //     return response()->json([
@@ -101,7 +105,8 @@ class FbPageService {
                             ],
                             'headers' => [
                                 'ProcessRunnerToken' => $process_runner_token
-                            ]
+                            ],
+                            'http_errors' => false 
                         ]);
                 
                         $create_process_sc = $create_process_request->getStatusCode();
@@ -111,6 +116,9 @@ class FbPageService {
                             Storage::append('public/comments_tritel_user.txt', 
                                 'CaseId: ' . $create_process_response->CaseId . PHP_EOL . 
                                 'ContactId: ' . $create_process_response->ContactId . PHP_EOL);
+                        } else {
+                            $create_process_reason = $create_process_request->getReasonPhrase();            
+                            Log::info("Create Contact: " . $create_process_sc . " " . $create_process_reason);
                         }
                         
                         // Insert page entry to DB
