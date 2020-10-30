@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
-class FbPageService 
+class FbPageService
 {
     use FbPageTrait;
 
@@ -35,22 +35,22 @@ class FbPageService
                     // } else if ($change->value->item === 'comment' && $change->value->from->id === '5268518223162209') {
                         // Current datetime
                         $current_datetime = new \DateTime('now', new \DateTimeZone('Asia/Manila'));
-                        
+
                         // Entry time
                         $entry_datetime = new \DateTime(date('Y-m-d H:i:s', $entry->time), new \DateTimeZone('UTC'));
                         $entry_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
-                        
+
                         // Value created_at
                         $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time), new \DateTimeZone('UTC'));
                         $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
-                        
+
                         // Get post details
                         $page_post_details = $this->getPagePostDetails($change->value->post_id, $this->page_id);
 
                         // $date->setTimestamp($change->value->created_time);
-                        // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL . 
+                        // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL .
                         Storage::append('public/comments_tritel_user.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
-                        'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL . 
+                        'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL .
                         'post_id: ' . $change->value->post_id . PHP_EOL .
                         'post_content: ' . $page_post_details . PHP_EOL .
                         'comment_id: ' . $change->value->comment_id . PHP_EOL .
@@ -70,19 +70,19 @@ class FbPageService
                                 // 'Audience' => 'https://lbc-tst.processes.quandago.app'
                                 'Audience' => 'https://lbc-acc.processes.quandago.app'
                             ],
-                            'http_errors' => false 
+                            'http_errors' => false
                         ]);
-                
+
                         $auth_api_sc = $auth_api_request->getStatusCode();
                         // If successful, pass ProcessRunnerToken to $process_runner_token variable
                         if ($auth_api_sc == 200) {
-                            $auth_api_response = $auth_api_request->getBody()->getContents();            
+                            $auth_api_response = $auth_api_request->getBody()->getContents();
                             $process_runner_token = $auth_api_response;
                         } else {
                             $auth_api_phrase = $auth_api_request->getReasonPhrase();
                             Log::info("Authorization: " . $auth_api_sc . " " . $auth_api_phrase);
                         }
-                        
+
                         // else {
                         //     return response()->json([
                         //         'message' => 'An unexpected error has occured (Authenticate).'
@@ -92,7 +92,7 @@ class FbPageService
                         // Create Process via Process API
                         $create_process_request = $this->vanad_client->post('package/process/contact', [
                             'json' => [
-                                'Assignee' => 'CS Facebook Comments',
+                                'Assignee' => $this->getAssigneeValue($this->page_id),
                                 'Priority' => 'M',
                                 'Type' => 'L',
                                 'RelatePath' => 'Anonymous:' . $change->value->from->id,
@@ -110,21 +110,21 @@ class FbPageService
                             'headers' => [
                                 'ProcessRunnerToken' => $process_runner_token
                             ],
-                            'http_errors' => false 
+                            'http_errors' => false
                         ]);
-                
+
                         $create_process_sc = $create_process_request->getStatusCode();
                         // If successful, append CaseId and ContactId to text file.
                         if ($create_process_sc == 200) {
-                            $create_process_response = json_decode($create_process_request->getBody()->getContents());            
-                            Storage::append('public/comments_tritel_user.txt', 
-                                'CaseId: ' . $create_process_response->CaseId . PHP_EOL . 
+                            $create_process_response = json_decode($create_process_request->getBody()->getContents());
+                            Storage::append('public/comments_tritel_user.txt',
+                                'CaseId: ' . $create_process_response->CaseId . PHP_EOL .
                                 'ContactId: ' . $create_process_response->ContactId . PHP_EOL);
                         } else {
-                            $create_process_reason = $create_process_request->getReasonPhrase();            
+                            $create_process_reason = $create_process_request->getReasonPhrase();
                             Log::info("Create Contact: " . $create_process_sc . " " . $create_process_reason);
                         }
-                        
+
                         // Insert page entry to DB
                         $page_entry = new FbWebhook;
                         $page_entry->page_id = $this->page_id;
@@ -139,7 +139,7 @@ class FbPageService
                         }
                         $page_entry->organization = $this->getTenantName($this->page_id);
                         $page_entry->save();
-                        
+
                         // else {
                         //     return response()->json([
                         //         'message' => 'An unexpected error has occured (Process).'
@@ -147,7 +147,7 @@ class FbPageService
                         // }
 
                         return true;
-                    // Check if a status is made by the page 
+                    // Check if a status is made by the page
                     } else if ($change->value->item === 'status' && $change->value->verb === 'add') {
                         // Storage::append('public/page_activity.txt', json_encode($page_entries, JSON_PRETTY_PRINT));
                         // return true;
@@ -158,7 +158,7 @@ class FbPageService
 
                         return true;
                     }
-                }  
+                }
             }
         }
     }
@@ -171,7 +171,7 @@ class FbPageService
                 foreach ($entry->changes as $change) {
                     // If comment is made by users
                     // Temporarily block comments from LBC Express PH
-                    // && $this->page_id !== '107092956014139' 
+                    // && $this->page_id !== '107092956014139'
                     if ($change->value->item === 'comment' && $change->value->verb === "add" && $change->value->from->id !== $this->page_id) {
                     // } else if ($change->value->item === 'comment' && $change->value->from->id === '5268518223162209') {
                         // Current datetime
@@ -183,9 +183,9 @@ class FbPageService
                         $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time), new \DateTimeZone('UTC'));
                         $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
                         // $date->setTimestamp($change->value->created_time);
-                        // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL . 
+                        // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL .
                         Storage::append('public/comments.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
-                        'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL . 
+                        'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL .
                         'post_id: ' . $change->value->post_id . PHP_EOL .
                         'comment_id: ' . $change->value->comment_id . PHP_EOL .
                         'parent_id: ' . $change->value->parent_id . PHP_EOL .
@@ -211,11 +211,11 @@ class FbPageService
 
                         return true;
                     }
-                }   
+                }
             }
         }
     }
-    
+
     public function handleCommentReplyRequest($request) {
         // Create comment reply
         $message = $request->message;
@@ -231,7 +231,7 @@ class FbPageService
         $reply_to_comment_sc = $reply_to_comment_request->getStatusCode();
 
         if ($reply_to_comment_sc == 200) {
-            $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());            
+            $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());
 
             $data = array();
             $data['success'] = true;
@@ -263,7 +263,7 @@ class FbPageService
         $hide_comment_sc = $hide_comment_request->getStatusCode();
 
         if ($hide_comment_sc == 200) {
-            $hide_comment = json_decode($hide_comment_request->getBody()->getContents());            
+            $hide_comment = json_decode($hide_comment_request->getBody()->getContents());
 
             $data = array();
             $data['success'] = true;
@@ -292,10 +292,10 @@ class FbPageService
                 $this->access_token = $this->getPageAccessToken($page_id);
                 $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
                 $find_page_post_sc = $find_page_post_request->getStatusCode();
-    
+
                 if ($find_page_post_sc == 200) {
                     $page_post = json_decode($find_page_post_request->getBody()->getContents());
-                    $page_post_details = $page_post->message;                            
+                    $page_post_details = $page_post->message;
                     return FbPagePost::create([
                         'post_id' => $post_id,
                         'details' => $page_post->message,
@@ -305,7 +305,7 @@ class FbPageService
 
             return $page_post->details;
         });
-        
+
         return $cached_post;
     }
 }
