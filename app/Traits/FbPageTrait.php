@@ -3,7 +3,7 @@
 namespace App\Traits;
 
 trait FbPageTrait {
-    public function getPageAccessToken($page_id) {
+    private function getPageAccessToken($page_id) {
         switch($page_id) {
             // Tritel API
             case '108729754345417':
@@ -25,7 +25,7 @@ trait FbPageTrait {
         }
     }
 
-    public function getTenantName($page_id) {
+    private function getTenantName($page_id) {
         switch($page_id) {
             // Tritel API
             case '108729754345417':
