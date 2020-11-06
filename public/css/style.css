@@ -49,3 +49,14 @@ footer.footer {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+
+/* Dashboard */
+.dashboard-navbar, .dashboard-footer {
+  background-color: #f8f9fa;
+}
+
+.footer-text {
+  color: #6c757d;
+  font-size: 80%;
+  font-weight: 400;
+}

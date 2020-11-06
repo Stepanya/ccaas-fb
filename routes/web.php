@@ -1,8 +1,10 @@
 <?php
 
+use App\Models\FbPage;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FacebookWebhookController;
+use App\Http\Controllers\PagesController;
 use Illuminate\Support\Facades\Storage;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -15,6 +17,5 @@ use Illuminate\Support\Facades\Storage;
 |
 */
 
-Route::get('/', function () {
-    return view('index');
-});
+Route::get('/', [PagesController::class, 'index']);
+Route::get('dashboard', [PagesController::class, 'dashboard']);
