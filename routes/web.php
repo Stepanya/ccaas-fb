@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\FacebookWebhookController;   
+use App\Http\Controllers\FacebookWebhookController;
 use Illuminate\Support\Facades\Storage;
 
 /*
@@ -16,23 +16,5 @@ use Illuminate\Support\Facades\Storage;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('index');
 });
-
-// Route::get('webhook', [FacebookWebhookController::class, 'receiveDataFromWebhook']);
-// Route::post('webhook', [FacebookWebhookController::class, 'receiveDataFromWebhook']);
-
-// Route::get('/test', function() {
-//     $json = Storage::get('public/comments.json');
-//     $comments = json_decode($json);
-    
-//     foreach ($comments as $comment) {
-//         foreach ($comment->entry as $entry) {
-//             foreach ($entry->changes as $change) {
-//                 if ($change->value->item == 'comment') {
-//                     echo $change->value->message.'<br>';
-//                 }
-//             }   
-//         }
-//     }
-// });

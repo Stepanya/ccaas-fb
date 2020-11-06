@@ -7,21 +7,23 @@ use App\Http\Requests\CreateCommentReplyRequest;
 use App\Http\Requests\HidePostCommentRequest;
 use App\Services\Sandbox\LBC\FbPageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class FbPageController extends Controller
 {
     public function receiveDataFromTestWebhook(Request $request, FbPageService $fbPageService) {
-        $page_entries = json_decode(json_encode($request->all(), true));
+        Storage::append('public/page_activity.txt', json_encode($request->all(), JSON_PRETTY_PRINT));
+        // $page_entries = json_decode(json_encode($request->all(), true));
 
-        $fbPageService->receiveTestPageEntryEvent($page_entries);
+        // $fbPageService->receiveTestPageEntryEvent($page_entries);
 
-        return response("Received content", 200);      
+        return response("Received content", 200);
     }
 
     public function receiveDataFromWebhook(Request $request, FbPageService $fbPageService) {
         $page_entries = json_decode(json_encode($request->all(), true));
 
-        $fbPageService->receivePageEntryEvent($page_entries);        
+        $fbPageService->receivePageEntryEvent($page_entries);
 
         return response("Received content", 200);
     }
@@ -40,7 +42,7 @@ class FbPageController extends Controller
     public function hidePostComment(HidePostCommentRequest $request, FbPageService $fbPageService) {
         // Get validated inputs from request
         $req_body = json_decode(json_encode($request->validated()));
-        
+
         $hide_comment_response = $fbPageService->handleHideCommentRequest($req_body);
         return response()->json([
             'success' => $hide_comment_response['success'],

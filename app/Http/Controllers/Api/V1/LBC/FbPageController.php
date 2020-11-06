@@ -3,41 +3,50 @@
 namespace App\Http\Controllers\Api\V1\LBC;
 
 use App\Http\Controllers\Controller;
-use GuzzleHttp\Promise;
+use App\Http\Requests\CreateCommentReplyRequest;
+use App\Http\Requests\HidePostCommentRequest;
+use App\Services\Sandbox\LBC\FbPageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
 class FbPageController extends Controller
 {
-    public function __construct() {
-        $this->access_token = 'EAAD2eb8YYhQBAKRFVp268QlHeC0FnUazV81BPDHJqEIjhhEej5u1UwLn7UwgzqfNzRoN5ZCZCIKMaRvTHu2qwo4cuagH3w4SZBZAbnmDsYSb7gTnrR1ZCutZCZAHpfzk930I70camhKlEXBhjDVH2LSfOf9EjdHvqzFyKBPbxcZAWQZDZD';
-        $this->page_id = '100878368385562';
-        $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
-    }
+  public function receiveDataFromWebhook(Request $request, FbPageService $fbPageService) {
+      $page_entries = json_decode(json_encode($request->all(), true));
 
-    public function createCommentReply(Request $request) {
-        $message = $request->input('message');
-        $comment_id = $request->input('comment_id');
-        
-        // $comment_replies_request = $this->client->get($comment_id.'/comments?access_token='.$this->access_token);
-        $reply_to_comment_request = $this->client->post($comment_id.'/comments', 
-                ['json' => 
-                    [
-                        'message' => $message,
-                        'access_token' => $this->access_token
-                    ]
-                ]
-            );
-        $reply_to_comment_sc = $reply_to_comment_request->getStatusCode();
+      $fbPageService->receivePageEntryEvent($page_entries);
 
-        if ($reply_to_comment_sc == 200) {
-            $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());            
-            return response()->json($reply_to_comment, 200);
-        }
+      return response("Received content", 200);
+  }
 
-        return response()->json([
-            'message' => 'An unexpected error has occured'
-        ], 500);
-    }
+  public function receiveHubToken(Request $request) {
+      if ($request->input('hub_mode') === 'subscribe' && $request->input('hub_verify_token') === '123') {
+              // Log::info('Hub Mode: ' . $request->input('hub_mode') . ' Token: ' . '123' . ' Hub Challenge: ' . $request->input('hub_challenge'));
+              return response($request->input('hub_challenge'), 200);
+      }
+        return response("Invalid token!", 400);
+  }
+
+  public function createCommentReply(CreateCommentReplyRequest $request, FbPageService $fbPageService) {
+      // Get validated inputs from request
+      $req_body = json_decode(json_encode($request->validated()));
+
+      $comment_reply_response = $fbPageService->handleCommentReplyRequest($req_body);
+      return response()->json([
+          'success' => $comment_reply_response['success'],
+          'message' => $comment_reply_response['message'],
+      ], $comment_reply_response['status_code']);
+  }
+
+  public function hidePostComment(HidePostCommentRequest $request, FbPageService $fbPageService) {
+      // Get validated inputs from request
+      $req_body = json_decode(json_encode($request->validated()));
+
+      $hide_comment_response = $fbPageService->handleHideCommentRequest($req_body);
+      return response()->json([
+          'success' => $hide_comment_response['success'],
+          'message' => $hide_comment_response['message'],
+      ], $hide_comment_response['status_code']);
+  }
 }

@@ -12,6 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
+        'api/v1/lbc/webhook',
         'api/sandbox/lbc/webhook',
         'api/sandbox/lbc/test-webhook',
         'api/sandbox/lbc/instagram/test-webhook',

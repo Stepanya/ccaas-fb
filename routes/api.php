@@ -2,7 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Sandbox;   
+use App\Http\Controllers\Api\Sandbox;
+use App\Http\Controllers\Api\V1;
 // use App\Http\Controllers\Api\V1;
 
 /*
@@ -43,7 +44,7 @@ Route::prefix('sandbox')->group(function () {
 
     Route::post('comment', [Sandbox\LBC\FbPageController::class, 'createCommentReply']);
     Route::post('comment/hide', [Sandbox\LBC\FbPageController::class, 'hidePostComment']);
-    
+
     // V1
     Route::prefix('v1')->group(function () {
         Route::post('comment', [Sandbox\LBC\FbPageController::class, 'createCommentReply']);
@@ -53,5 +54,11 @@ Route::prefix('sandbox')->group(function () {
 
 // V1
 Route::prefix('v1')->group(function () {
-    Route::post('comment', [V1\LBC\FbPageController::class, 'createCommentReply']);    
+    // LBC
+    // FB Webhook
+    Route::get('lbc/webhook', [V1\LBC\FbPageController::class, 'receiveHubToken']);
+    Route::post('lbc/webhook', [V1\LBC\FbPageController::class, 'receiveDataFromWebhook']);
+
+    Route::post('comment', [V1\LBC\FbPageController::class, 'createCommentReply']);
+    Route::post('comment/hide', [V1\LBC\FbPageController::class, 'hidePostComment']);
 });
