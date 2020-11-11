@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services\Sandbox\LBC;
+namespace App\Services\V1\LBC;
 
-use App\Traits\Sandbox\LBC\FbPageTrait;
-use App\Models\SandboxFbWebhook;
-use App\Models\SandboxFbPagePost;
+use App\Traits\V1\LBC\FbPageTrait;
+use App\Models\FbWebhook;
+use App\Models\FbPagePost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -19,7 +19,7 @@ class FbPageService
         $this->page_id = '';
         $this->access_token = '';
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
-        $this->lbc_acc_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-acc.processes.quandago.app/api/']);
+        $this->vanad_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc.processes.quandago.app/api/']);
     }
 
     public function receiveTestPageEntryEvent($page_entries) {
@@ -51,7 +51,7 @@ class FbPageService
 
                         // $date->setTimestamp($change->value->created_time);
                         // Storage::append('public/comments.txt', date('Y-m-d H:i:s', $change->value->created_time) . PHP_EOL .
-                        Storage::append('public/comments.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
+                        Storage::append('public/comments_tritel_user.txt', '[' . $current_datetime->format('Y-m-d H:i:s') . ']' . PHP_EOL .
                         'Created Time Converted: ' . $created_at_datetime->format('Y-m-d H:i:s') . PHP_EOL .
                         'post_id: ' . $change->value->post_id . PHP_EOL .
                         'post_content: ' . $page_post_details . PHP_EOL .
@@ -63,11 +63,13 @@ class FbPageService
                         'message: ' . $change->value->message . PHP_EOL);
 
                         // Get ProcessRunnerToken via Authenticate API
-                        $auth_api_request = $this->lbc_acc_client->post('auth/authenticate/false', [
+                        $auth_api_request = $this->vanad_client->post('auth/authenticate/false', [
                             'auth' => [
-                                env('LBC_ACC_VANAD_API_USER'), env('LBC_ACC_VANAD_API_PASS')
+                                env('VANAD_API_USER'), env('VANAD_API_PASS')
                             ],
                             'json' => [
+                                // 'Audience' => 'https://dti-tst.processes.quandago.dev'
+                                // 'Audience' => 'https://lbc-tst.processes.quandago.app'
                                 'Audience' => 'https://lbc-acc.processes.quandago.app'
                             ],
                             'http_errors' => false
@@ -90,7 +92,7 @@ class FbPageService
                         // }
 
                         // Create Process via Process API
-                        $create_process_request = $this->lbc_acc_client->post('package/process/contact', [
+                        $create_process_request = $this->vanad_client->post('package/process/contact', [
                             'json' => [
                                 'Assignee' => $this->getAssigneeValue($this->page_id),
                                 'Priority' => 'M',
@@ -117,7 +119,7 @@ class FbPageService
                         // If successful, append CaseId and ContactId to text file.
                         if ($create_process_sc == 200) {
                             $create_process_response = json_decode($create_process_request->getBody()->getContents());
-                            Storage::append('public/comments.txt',
+                            Storage::append('public/comments_tritel_user.txt',
                                 'CaseId: ' . $create_process_response->CaseId . PHP_EOL .
                                 'ContactId: ' . $create_process_response->ContactId . PHP_EOL);
                         } else {
@@ -126,7 +128,7 @@ class FbPageService
                         }
 
                         // Insert page entry to DB
-                        $page_entry = new SandboxFbWebhook;
+                        $page_entry = new FbWebhook;
                         $page_entry->page_id = $this->page_id;
                         $page_entry->post_id = $change->value->post_id;
                         $page_entry->comment_id = $change->value->comment_id;
@@ -151,7 +153,7 @@ class FbPageService
                     } else if ($change->value->item === 'status' && $change->value->verb === 'add') {
                         // Storage::append('public/page_activity.txt', json_encode($page_entries, JSON_PRETTY_PRINT));
                         // return true;
-                        $page_post = new SandboxFbPagePost;
+                        $page_post = new FbPagePost;
                         $page_post->post_id = $change->value->post_id;
                         $page_post->details = $change->value->message;
                         $page_post->save();
@@ -375,7 +377,7 @@ class FbPageService
         $cached_time = 60 * 60 * 24 * 7; // 1 week
 
         $cached_post = Cache::remember($cache_key, $cached_time, function () use ($post_id, $page_id) {
-            $page_post = SandboxFbPagePost::where('post_id', $post_id)->firstOr(function() use ($post_id, $page_id) {
+            $page_post = FbPagePost::where('post_id', $post_id)->firstOr(function() use ($post_id, $page_id) {
                 $this->access_token = $this->getPageAccessToken($page_id);
                 $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
                 $find_page_post_sc = $find_page_post_request->getStatusCode();
@@ -383,7 +385,7 @@ class FbPageService
                 if ($find_page_post_sc == 200) {
                     $page_post = json_decode($find_page_post_request->getBody()->getContents());
                     $page_post_details = $page_post->message;
-                    return SandboxFbPagePost::create([
+                    return FbPagePost::create([
                         'post_id' => $post_id,
                         'details' => $page_post->message,
                     ]);

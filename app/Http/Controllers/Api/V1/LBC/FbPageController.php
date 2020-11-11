@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\V1\LBC;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateCommentReplyRequest;
 use App\Http\Requests\HidePostCommentRequest;
-use App\Services\Sandbox\LBC\FbPageService;
+use App\Services\V1\LBC\FbPageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;

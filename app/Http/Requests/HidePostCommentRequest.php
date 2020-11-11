@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Traits\FbPageTrait;
+use App\Traits\V1\LBC\FbPageTrait;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
@@ -16,7 +16,7 @@ class HidePostCommentRequest extends FormRequest
         $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
         $this->api_key = 'AX3DTdEQKUitb3nb';
     }
-    
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -56,7 +56,7 @@ class HidePostCommentRequest extends FormRequest
                     } else {
                         $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
                         $check_comment_id_sc = $check_comment_id_request->getStatusCode();
-    
+
                         if ($check_comment_id_sc !== 200) {
                             $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
                             $fail($check_comment_id_response->error->message);
@@ -83,7 +83,7 @@ class HidePostCommentRequest extends FormRequest
 
     protected function failedValidation(Validator $validator) {
         $err_msg = implode(' ', $validator->errors()->all());
-        
+
         throw new HttpResponseException(response()->json([
             'success' => false,
             'message' => $err_msg

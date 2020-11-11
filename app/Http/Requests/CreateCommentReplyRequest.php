@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests;
 
-use App\Traits\FbPageTrait;
+use App\Traits\V1\LBC\FbPageTrait;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
@@ -57,7 +57,7 @@ class CreateCommentReplyRequest extends FormRequest
                     } else {
                         $check_comment_id_request = $this->client->get($comment_id.'?access_token='.$this->access_token, ['http_errors' => false]);
                         $check_comment_id_sc = $check_comment_id_request->getStatusCode();
-    
+
                         if ($check_comment_id_sc !== 200) {
                             $check_comment_id_response = json_decode($check_comment_id_request->getBody()->getContents());
                             $fail($check_comment_id_response->error->message);
@@ -75,7 +75,7 @@ class CreateCommentReplyRequest extends FormRequest
             'comment_id.required' => 'The comment_id parameter is required.',
         ];
     }
-    
+
     protected function failedAuthorization() {
         throw new HttpResponseException(response()->json([
             'success' => false,
@@ -85,7 +85,7 @@ class CreateCommentReplyRequest extends FormRequest
 
     protected function failedValidation(Validator $validator) {
         $err_msg = implode(' ', $validator->errors()->all());
-        
+
         throw new HttpResponseException(response()->json([
             'success' => false,
             'message' => $err_msg

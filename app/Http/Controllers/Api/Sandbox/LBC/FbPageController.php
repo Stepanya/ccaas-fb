@@ -12,20 +12,20 @@ use Illuminate\Support\Facades\Storage;
 class FbPageController extends Controller
 {
     public function receiveDataFromTestWebhook(Request $request, FbPageService $fbPageService) {
-        // $page_entries = json_decode(json_encode($request->all(), true));
-
-        // $fbPageService->receiveTestPageEntryEvent($page_entries);
-
-        return response("Received content", 200);
-    }
-
-    public function receiveDataFromWebhook(Request $request, FbPageService $fbPageService) {
         $page_entries = json_decode(json_encode($request->all(), true));
 
-        $fbPageService->receivePageEntryEvent($page_entries);
+        $fbPageService->receiveTestPageEntryEvent($page_entries);
 
         return response("Received content", 200);
     }
+
+    // public function receiveDataFromWebhook(Request $request, FbPageService $fbPageService) {
+    //     $page_entries = json_decode(json_encode($request->all(), true));
+    //
+    //     $fbPageService->receivePageEntryEvent($page_entries);
+    //
+    //     return response("Received content", 200);
+    // }
 
     public function createCommentReply(CreateCommentReplyRequest $request, FbPageService $fbPageService) {
         // Get validated inputs from request
