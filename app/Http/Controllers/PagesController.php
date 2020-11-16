@@ -3,14 +3,24 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\FbPage;
 use App\Models\FbWebhook;
+use App\Services\V1\LBC\PagesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PagesController extends Controller
 {
+    public function __construct() {
+      $this->middleware('auth')->except('index');
+    }
+
     public function index() {
         return view('index');
+    }
+
+    public function home() {
+        return view('home');
     }
 
     public function dashboard() {
@@ -21,12 +31,19 @@ class PagesController extends Controller
           ->orderBy('contacts_created', 'desc')
           ->get();
 
-        // $failed_entries = FbWebhook::selectRaw('page_id, count(id) as failed_contacts')
-        //   ->where('status', 0)
-        //   ->groupBy('page_id')
-        //   ->orderBy('failed_contacts', 'desc')
-        //   ->get();
-
         return view('dashboard')->with('entries', $webhook_entries);
+    }
+
+      public function failedEntries() {
+        $fb_pages = FbPage::all();
+
+        return view('failed_entries')->with('pages', $fb_pages);
+      // return view('failed_entries')->with('entries', $webhook_entries);
+    }
+
+    public function getFailedEntries(Request $request, PagesService $pagesService) {
+        $failed_entries_response = $pagesService->handleGetFailedEntriesEvent($request);
+
+        return $failed_entries_response;
     }
 }
