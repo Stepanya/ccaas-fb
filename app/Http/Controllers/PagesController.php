@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\FbLbcRegion;
 use App\Models\FbPage;
 use App\Models\FbWebhook;
 use App\Services\V1\LBC\PagesService;
@@ -24,17 +25,18 @@ class PagesController extends Controller
     }
 
     public function dashboard() {
-        $webhook_entries = FbWebhook::from('fb_webhooks as wh1')
-          ->select('page_id', DB::raw('count(id) as contacts_created, (select count(id) from fb_webhooks wh2 where wh2.page_id = wh1.page_id AND `status` = 0) as failed_entries'))
-          ->where('status', 1)
-          ->groupBy('page_id')
-          ->orderBy('contacts_created', 'desc')
-          ->get();
+        $fb_lbc_regions = FbLbcRegion::all();
 
-        return view('dashboard')->with('entries', $webhook_entries);
+        return view('dashboard')->with('regions', $fb_lbc_regions);
     }
 
-      public function failedEntries() {
+    public function getFilteredEntries(Request $request, PagesService $pagesService) {
+        $filtered_entries_response = $pagesService->handleGetFilteredEntriesEvent($request);
+
+        return $filtered_entries_response;
+    }
+
+    public function failedEntries() {
         $fb_pages = FbPage::all();
 
         return view('failed_entries')->with('pages', $fb_pages);

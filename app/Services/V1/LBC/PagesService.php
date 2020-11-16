@@ -5,6 +5,7 @@ namespace App\Services\V1\LBC;
 use App\Traits\V1\LBC\FbPageTrait;
 use App\Models\FbWebhook;
 use App\Models\FbPagePost;
+use App\Models\FbLbcRegion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -124,6 +125,36 @@ class PagesService
         }
 
         return redirect('failed-entries')->with('success', 'All found failed entries have been created successfully.');
+    }
+
+    public function handleGetFilteredEntriesEvent($request) {
+        $region_id = $request->input('region_id');
+        $created_date = $request->input('created_date');
+
+        // return $region_id." ".$created_date;
+
+        $webhook_entries = FbWebhook::from('fb_webhooks as wh1')
+          // ->select('wh1.page_id', 'fb_pages.region_id', DB::raw('count(wh1.id) as contacts_created, (select count(wh2.id) from fb_webhooks wh2 where wh2.page_id = wh1.page_id AND `status` = 0 AND date(`created_at`) = '.$created_date.') as failed_entries'))
+          ->selectRaw('wh1.page_id, fb_pages.region_id, count(wh1.id) as contacts_created, (select count(wh2.id) from fb_webhooks wh2 where wh2.page_id = wh1.page_id AND `status` = 0 AND date(`created_at`) = ?) as failed_entries', [$created_date])
+          ->join('fb_pages', 'wh1.page_id', '=', 'fb_pages.page_id')
+          ->where('wh1.status', 1)
+          ->where('fb_pages.region_id', $region_id)
+          ->whereDate('wh1.created_at', $created_date)
+          ->groupBy('page_id', 'region_id')
+          ->orderBy('contacts_created', 'desc')
+          ->get();
+
+        if ($webhook_entries->isEmpty()) {
+          return redirect('dashboard')->with('error', 'No entries found.');
+        }
+
+        // Get LBC regions list
+        $fb_lbc_regions = FbLbcRegion::all();
+
+        return view('dashboard')->with('regions', $fb_lbc_regions)
+                                ->with('entries', $webhook_entries)
+                                ->with('prev_id', $region_id)
+                                ->with('prev_date', $created_date);
     }
 
     private function getPagePostDetails($post_id, $page_id) {

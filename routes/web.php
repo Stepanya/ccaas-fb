@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use App\Models\FbWebhook;
 use App\Models\FbPage;
+use App\Models\FbLbcRegion;
 
 
 /*
@@ -22,6 +23,7 @@ use App\Models\FbPage;
 
 Route::get('/', [PagesController::class, 'index']);
 Route::get('dashboard', [PagesController::class, 'dashboard']);
+Route::post('search-entries', [PagesController::class, 'getFilteredEntries']);
 Route::get('failed-entries', [PagesController::class, 'failedEntries']);
 Route::post('results', [PagesController::class, 'getFailedEntries']);
 
