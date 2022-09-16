@@ -21,6 +21,18 @@ trait FbPageTrait {
             case '108729754345417':
                 return env('TRITEL_API_TOKEN');
                 break;
+            // Tritel API - 4
+            case '107333891412816':
+                return env('TRITEL_API_4_TOKEN');
+                break;
+            // Tritel API - 5
+            case '107073368109732':
+                return env('TRITEL_API_5_TOKEN');
+                break;
+            // Tritel Webhooks Demo
+            case '101738415977074':
+                return env('TRITEL_WEBHOOKS_DEMO_TOKEN');
+                break;
 
             // LBC Express Inc (PH)
             case '107092956014139':
@@ -168,8 +180,18 @@ trait FbPageTrait {
               return 'CS Facebook Comments - Japan';
               break;
           // Tritel API
-          case '108729754345417':
-              return 'CS Facebook Comments';
+          // case '108729754345417':
+          // Tritel API - 4
+          case '107333891412816':
+              return 'CS Facebook Comments - Canada';
+              break;
+          // Tritel API - 5
+          case '107073368109732':
+              return 'CS Facebook Comments - USA';
+              break;
+          // Tritel Webhooks Demo
+          case '101738415977074':
+              return 'CS Facebook Comments - Japan';
               break;
 
           // LBC Express Inc (PH)
@@ -313,6 +335,12 @@ trait FbPageTrait {
             case '100936665160720':
             // Tritel API
             case '108729754345417':
+            // Tritel API - 4
+            case '107333891412816':
+            // Tritel API - 5
+            case '107073368109732':
+            // Tritel Webhooks Demo
+            case '101738415977074':
                 return 'Tritel';
                 break;
 

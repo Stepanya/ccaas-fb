@@ -24,6 +24,7 @@ class FbPageService
 
     public function receiveTestPageEntryEvent($page_entries) {
         $process_runner_token = '';
+        $create_process_response = '';
 
         foreach ($page_entries as $page_entry) {
             foreach ($page_entries->entry as $entry) {
@@ -70,7 +71,11 @@ class FbPageService
                             'json' => [
                                 // 'Audience' => 'https://dti-tst.processes.quandago.dev'
                                 // 'Audience' => 'https://lbc-tst.processes.quandago.app'
-                                'Audience' => 'https://lbc-acc.processes.quandago.app'
+                                
+                                // before fix
+                                // 'Audience' => 'https://lbc-acc.processes.quandago.app'
+                                // after fix
+                                'Audience' => 'https://lbc-acc.processes.quandago.app/'
                             ],
                             'http_errors' => false
                         ]);
@@ -129,6 +134,9 @@ class FbPageService
 
                         // Insert page entry to DB
                         $page_entry = new FbWebhook;
+                        if ($create_process_sc == 200) {
+                            $page_entry->contact_id = $create_process_response->ContactId;
+                        }
                         $page_entry->page_id = $this->page_id;
                         $page_entry->post_id = $change->value->post_id;
                         $page_entry->comment_id = $change->value->comment_id;
@@ -167,6 +175,7 @@ class FbPageService
 
     public function receivePageEntryEvent($page_entries) {
         $process_runner_token = '';
+        $create_process_response = '';
 
         foreach ($page_entries as $page_entry) {
             foreach ($page_entries->entry as $entry) {
@@ -187,6 +196,13 @@ class FbPageService
                         // $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time), new \DateTimeZone('UTC'));
                         // $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
                         $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time));
+
+                        // Check if comment is made in profile picture post
+                        $profile_picture_comment_check = $this->profilePictureCommentCheck($change->value->post_id, $this->page_id);
+                        if ($profile_picture_comment_check) {
+                          Log::info('Comment has no message. Comment ID: ' . $change->value->comment_id);
+                          return true;
+                        }
 
                         // Get post details
                         $page_post_details = $this->getPagePostDetails($change->value->post_id, $this->page_id);
@@ -212,7 +228,9 @@ class FbPageService
                             'json' => [
                                 'Audience' => 'https://lbc.processes.quandago.app'
                             ],
-                            'http_errors' => false
+                            'http_errors' => false,
+                            // 'verify' => false
+                            // 'timeout' => 600
                         ]);
 
                         $auth_api_sc = $auth_api_request->getStatusCode();
@@ -237,7 +255,9 @@ class FbPageService
                                 'Assignee' => $this->getAssigneeValue($this->page_id),
                                 'Priority' => 'M',
                                 'Type' => 'L',
-                                'RelatePath' => 'Anonymous:' . $change->value->from->id,
+                                // 0824 replaced user_id with comment_id
+                                // 'RelatePath' => 'Anonymous:' . $change->value->from->id,
+                                'RelatePath' => 'Anonymous:' . $change->value->comment_id,
                                 'FormData' => [
                                     'created_time' => $created_at_datetime->format('Y-m-d H:i:s'),
                                     'name' => $change->value->from->name,
@@ -252,7 +272,9 @@ class FbPageService
                             'headers' => [
                                 'ProcessRunnerToken' => $process_runner_token
                             ],
-                            'http_errors' => false
+                            'http_errors' => false,
+                            // 'verify' => false
+                            // 'timeout' => 600
                         ]);
 
                         $create_process_sc = $create_process_request->getStatusCode();
@@ -269,6 +291,9 @@ class FbPageService
 
                         // Insert page entry to DB
                         $page_entry = new FbWebhook;
+                        if ($create_process_sc == 200) {
+                            $page_entry->contact_id = $create_process_response->ContactId;
+                        }
                         $page_entry->page_id = $this->page_id;
                         $page_entry->post_id = $change->value->post_id;
                         $page_entry->comment_id = $change->value->comment_id;
@@ -322,6 +347,14 @@ class FbPageService
         if ($reply_to_comment_sc == 200) {
             $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());
 
+            $replied_comment = FbWebhook::where('comment_id', $comment_id)
+                                                 ->where('status', 1)
+                                                 ->first();
+
+            $replied_comment->comment_reply_status = 1;
+            $replied_comment->comment_reply_id = $reply_to_comment->id;
+            $replied_comment->save();
+
             $data = array();
             $data['success'] = true;
             $data['message'] = 'Comment created successfully. ID: ' . $reply_to_comment->id;
@@ -371,6 +404,29 @@ class FbPageService
         return $data;
     }
 
+    private function profilePictureCommentCheck($post_id, $page_id) {
+        $this->access_token = $this->getPageAccessToken($page_id);
+        $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
+        $find_page_post_sc = $find_page_post_request->getStatusCode();
+
+        if ($find_page_post_sc == 200) {
+            $page_post = json_decode($find_page_post_request->getBody()->getContents());
+            // Storage::append('public/comments.txt', json_encode($page_post, JSON_PRETTY_PRINT));
+
+            if (!isset($page_post->message)) {
+              Log::info(json_encode($page_post, JSON_PRETTY_PRINT) . ' page post check');
+              return true;
+            }
+
+            // if (isset($page_post->story) && !isset($page_post->message)) {
+            //   Log::info(json_encode($page_post, JSON_PRETTY_PRINT));
+            //   return true;
+            // }
+        }
+
+        return false;
+    }
+
     private function getPagePostDetails($post_id, $page_id) {
         // If no posts are found related to post_id, send GET request to Graph API post endpoint
         $cache_key = 'post_id_' . $post_id;
@@ -384,6 +440,7 @@ class FbPageService
 
                 if ($find_page_post_sc == 200) {
                     $page_post = json_decode($find_page_post_request->getBody()->getContents());
+                    Storage::append('public/page_activity.txt', json_encode($page_post, JSON_PRETTY_PRINT));
                     $page_post_details = $page_post->message;
                     return FbPagePost::create([
                         'post_id' => $post_id,

@@ -21,6 +21,14 @@ trait FbPageTrait {
             case '108729754345417':
                 return env('TRITEL_API_TOKEN');
                 break;
+            // Tritel API - 4
+            case '107333891412816':
+                return env('TRITEL_API_4_TOKEN');
+                break;
+            // Tritel API - 5
+            case '107073368109732':
+                return env('TRITEL_API_5_TOKEN');
+                break;
 
             // LBC Express Inc (PH)
             case '107092956014139':
@@ -150,6 +158,18 @@ trait FbPageTrait {
             case '1667892016757806':
                 return env('LBC_EXPRESS_INC_BH_TOKEN');
                 break;
+
+            // LBC Guam
+            // LBC Express Inc. (Guam)
+            case '1660800674176811':
+                return env('LBC_EXPRESS_INC_GUAM_TOKEN');
+                break;
+
+            // SoShop! by LBC
+            // SoShop! by LBC
+            case '104578181347878':
+                return env('SOSHOP_BY_LBC_TOKEN');
+                break;
         }
     }
 
@@ -168,8 +188,14 @@ trait FbPageTrait {
               return 'CS Facebook Comments - Japan';
               break;
           // Tritel API
-          case '108729754345417':
-              return 'CS Facebook Comments';
+          // case '108729754345417':
+          // Tritel API - 4
+          case '107333891412816':
+              return 'CS Facebook Comments - Canada';
+              break;
+          // Tritel API - 5
+          case '107073368109732':
+              return 'CS Facebook Comments - USA';
               break;
 
           // LBC Express Inc (PH)
@@ -300,6 +326,18 @@ trait FbPageTrait {
           case '1667892016757806':
               return 'CS Facebook Comments - Bahrain';
               break;
+
+          // LBC Guam
+          // LBC Express Inc. (Guam)
+          case '1660800674176811':
+              return 'CS Facebook Comments - Guam';
+              break;
+
+          // SoShop! by LBC
+          // SoShop! by LBC
+          case '104578181347878':
+              return 'Facebook Comments - LBC So Shop';
+              break;
       }
     }
 
@@ -313,6 +351,10 @@ trait FbPageTrait {
             case '100936665160720':
             // Tritel API
             case '108729754345417':
+            // Tritel API - 4
+            case '107333891412816':
+            // Tritel API - 5
+            case '107073368109732':
                 return 'Tritel';
                 break;
 
@@ -384,6 +426,14 @@ trait FbPageTrait {
             case '1541766656113891':
             // LBC Express Inc. (Bahrain)
             case '1667892016757806':
+
+            // LBC Guam
+            // LBC Express Inc. (Guam)
+            case '1660800674176811':
+
+            // SoShop! by LBC
+            // SoShop! by LBC
+            case '104578181347878':
                 return 'LBC';
                 break;
         }

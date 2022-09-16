@@ -8,7 +8,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\FbWebhook;
 use App\Models\FbPage;
 use App\Models\FbLbcRegion;
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +28,27 @@ Route::post('search-entries', [PagesController::class, 'getFilteredEntries']);
 Route::get('failed-entries', [PagesController::class, 'failedEntries']);
 Route::post('results', [PagesController::class, 'getFailedEntries']);
 
-Auth::routes();
+Auth::routes([
+    'register' => true,
+    'reset' => false,
+    'verify' => false,
+]);
 
 Route::get('/home', [PagesController::class, 'home'])->name('home');
+
+// Route::get('test', function() {
+//     return view('test');
+// });
+//
+// Route::post('test-result', function(Request $request) {
+//     $track_and_trace_arr = ['follow up', 'follow-up', 'pa check', 'pacheck', 'pa-check'];
+//
+//     $str = Str::lower($request->input('str'));
+//     $string_chk = Str::of($str)->contains($track_and_trace_arr);
+//
+//     if ($string_chk) {
+//         return "String contains keywords.";
+//     }
+//
+//     return "No keywords matched words inside the string.";
+// });

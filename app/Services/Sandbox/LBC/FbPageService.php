@@ -18,12 +18,15 @@ class FbPageService
     public function __construct() {
         $this->page_id = '';
         $this->access_token = '';
-        $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v8.0/']);
+        // Changed version from 8.0 to 10.0 06/18/21
+        $this->client = new \GuzzleHttp\Client(['base_uri' => 'https://graph.facebook.com/v10.0/']);
         $this->lbc_acc_client = new \GuzzleHttp\Client(['base_uri' => 'https://lbc-acc.processes.quandago.app/api/']);
     }
 
     public function receiveTestPageEntryEvent($page_entries) {
+        // Variables initialized outside for accessibility
         $process_runner_token = '';
+        $create_process_response = '';
 
         foreach ($page_entries as $page_entry) {
             foreach ($page_entries->entry as $entry) {
@@ -45,6 +48,13 @@ class FbPageService
                         // $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
                         $created_at_datetime = new \DateTime(date('Y-m-d H:i:s', $change->value->created_time));
                         // $created_at_datetime->setTimeZone(new \DateTimeZone('Asia/Manila'));
+
+                        // Check if comment is made in profile picture post
+                        // $profile_picture_comment_check = $this->profilePictureCommentCheck($change->value->post_id, $this->page_id);
+                        // if ($profile_picture_comment_check) {
+                        //   Log::info('Comment is made in profile picture post.');
+                        //   return true;
+                        // }
 
                         // Get post details
                         $page_post_details = $this->getPagePostDetails($change->value->post_id, $this->page_id);
@@ -70,7 +80,9 @@ class FbPageService
                             'json' => [
                                 'Audience' => 'https://lbc-acc.processes.quandago.app'
                             ],
-                            'http_errors' => false
+                            'http_errors' => false,
+                            // 'connect_timeout' => 0,
+                            // 'timeout' => 0
                         ]);
 
                         $auth_api_sc = $auth_api_request->getStatusCode();
@@ -95,7 +107,9 @@ class FbPageService
                                 'Assignee' => $this->getAssigneeValue($this->page_id),
                                 'Priority' => 'M',
                                 'Type' => 'L',
-                                'RelatePath' => 'Anonymous:' . $change->value->from->id,
+                                // 0805 replaced user_id with comment_id
+                                // 'RelatePath' => 'Anonymous:' . $change->value->from->id,
+                                'RelatePath' => 'Anonymous:' . $change->value->comment_id,
                                 'FormData' => [
                                     'created_time' => $created_at_datetime->format('Y-m-d H:i:s'),
                                     'name' => $change->value->from->name,
@@ -127,6 +141,9 @@ class FbPageService
 
                         // Insert page entry to DB
                         $page_entry = new SandboxFbWebhook;
+                        if ($create_process_sc == 200) {
+                            $page_entry->contact_id = $create_process_response->ContactId;
+                        }
                         $page_entry->page_id = $this->page_id;
                         $page_entry->post_id = $change->value->post_id;
                         $page_entry->comment_id = $change->value->comment_id;
@@ -146,6 +163,7 @@ class FbPageService
                         //     ], 500);
                         // }
 
+                        // Storage::append('public/comments.txt', "If this gets logged, request successful.");
                         return true;
                     // Check if a status is made by the page
                     } else if ($change->value->item === 'status' && $change->value->verb === 'add') {
@@ -320,10 +338,19 @@ class FbPageService
         if ($reply_to_comment_sc == 200) {
             $reply_to_comment = json_decode($reply_to_comment_request->getBody()->getContents());
 
+            $replied_comment = SandboxFbWebhook::where('comment_id', $comment_id)
+                                                 ->where('status', 1)
+                                                 ->first();
+
+            $replied_comment->comment_reply_status = 1;
+            $replied_comment->comment_reply_id = $reply_to_comment->id;
+            $replied_comment->save();
+
             $data = array();
             $data['success'] = true;
             $data['message'] = 'Comment created successfully. ID: ' . $reply_to_comment->id;
             $data['status_code'] = 200;
+
             return $data;
         }
 
@@ -369,6 +396,24 @@ class FbPageService
         return $data;
     }
 
+    private function profilePictureCommentCheck($post_id, $page_id) {
+        $this->access_token = $this->getPageAccessToken($page_id);
+        $find_page_post_request = $this->client->get($post_id.'?access_token='.$this->access_token);
+        $find_page_post_sc = $find_page_post_request->getStatusCode();
+
+        if ($find_page_post_sc == 200) {
+            $page_post = json_decode($find_page_post_request->getBody()->getContents());
+            Storage::append('public/comments.txt', json_encode($page_post, JSON_PRETTY_PRINT));
+
+            if (isset($page_post->story)) {
+              Log::info(json_encode($page_post, JSON_PRETTY_PRINT));
+              return true;
+            }
+        }
+
+        return false;
+    }
+
     private function getPagePostDetails($post_id, $page_id) {
         // If no posts are found related to post_id, send GET request to Graph API post endpoint
         $cache_key = 'post_id_' . $post_id;
@@ -382,7 +427,15 @@ class FbPageService
 
                 if ($find_page_post_sc == 200) {
                     $page_post = json_decode($find_page_post_request->getBody()->getContents());
-                    $page_post_details = $page_post->message;
+                    Storage::append('public/comments.txt', json_encode($page_post, JSON_PRETTY_PRINT));
+
+                    if (isset($page_post->story)) {
+                      return SandboxFbPagePost::create([
+                          'post_id' => $post_id,
+                          'details' => $page_post->story,
+                      ]);
+                    }
+
                     return SandboxFbPagePost::create([
                         'post_id' => $post_id,
                         'details' => $page_post->message,

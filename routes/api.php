@@ -28,11 +28,22 @@ Route::prefix('sandbox')->group(function () {
     // Route::get('lbc/webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromWebhook']);
     Route::post('lbc/webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromWebhook']);
     // Route::get('lbc/test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromTestWebhook']);
+    Route::get('lbc/test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveHubToken']);
+    Route::get('lbc/test-webhook2', [Sandbox\LBC\FbPageController::class, 'receiveNewHubToken']);
     Route::post('lbc/test-webhook', [Sandbox\LBC\FbPageController::class, 'receiveDataFromTestWebhook']);
+    Route::post('lbc/test-webhook2', [Sandbox\LBC\FbPageController::class, 'newEndpointTest']);
 
     // Twitter Webhook
+    Route::post('lbc/twitter/register-webhook', [Sandbox\LBC\TwitterFeedController::class, 'registerWebhook']);
+
+    // CCaaS Twitter (sandbox)
     Route::get('lbc/twitter/test-webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
     Route::post('lbc/twitter/test-webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromTestWebhook']);
+
+    // LBC CCaaS Webhook App (prod)
+    Route::get('lbc/twitter/webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveCRCToken']);
+    Route::post('lbc/twitter/webhook', [Sandbox\LBC\TwitterFeedController::class, 'receiveDataFromWebhook']);
+    Route::post('lbc/twitter/reply-to-tweet', [Sandbox\LBC\TwitterFeedController::class, 'replyToTweet']);
 
     // Instagram Webhook
     // Route::get('lbc/instagram/test-webhook', [Sandbox\LBC\InstagramFeedController::class, 'receiveDataFromTestWebhook']);
